@@ -6,6 +6,11 @@ namespace Common
 {
     public class Command
     {
+        public readonly static Command[] Every;
+        public readonly Enumeration.Type actType;
+        public readonly Direction dir1;
+        public readonly Direction? dir2;
+
         static Command()
         {
             List<Command> cmds = new List<Command>();
@@ -39,19 +44,10 @@ namespace Common
             Every = cmds.ToArray();
         }
 
-        public readonly static Command[] Every;
-
         private static bool isOpposite(Direction d1, Direction d2)
         {
             return ((int)d1 + (int)d2) == 3; 
         }
-
-        // Order of enum important for determining opposites
-
-
-        public readonly Enumeration.Type actType;
-        public readonly Direction dir1;
-        public readonly Direction? dir2;
 
         public Command(Direction d)
         {
@@ -70,11 +66,12 @@ namespace Common
         public string toString()
         {
             if (actType == Enumeration.Type.Move)
+            {
                 return actType.ToString() + "(" + dir1 + ")";
+            }
 
             return actType.ToString() + "(" + dir1 + "," + dir2 + ")";
         }
-
 
         public string toActionString()
         {
