@@ -1,0 +1,1 @@
+java -jar server.jar -l levels/MAsimple1.lvl -c "java sampleclients.RandomWalkClient" -g
