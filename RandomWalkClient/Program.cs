@@ -1,10 +1,7 @@
 ﻿using Common;
+using Common.Classes;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using Common.Classes;
 
 namespace RandomWalkClient
 {
@@ -93,7 +90,6 @@ namespace RandomWalkClient
 
         static void Main(string[] args)
         {
-            Command[] ee = Command.Every;
             // Use stderr to print to console
             System.Diagnostics.Debug.WriteLine("Hello from RandomWalkClient. I am sending this using the error outputstream");
             try
