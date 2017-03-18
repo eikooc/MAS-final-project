@@ -4,9 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Common
+namespace Common.Enumeration
 {
-    public class Class1
+    public enum Direction : int
     {
+        N = 0,
+        W = 1,
+        E = 2,
+        S = 3
     }
 }
