@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Common
+namespace Common.Classes
 {
     public class Command
     {

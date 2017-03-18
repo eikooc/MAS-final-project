@@ -41,7 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\Utility.cs" />
-    <Compile Include="Command.cs" />
+    <Compile Include="Classes\Command.cs" />
     <Compile Include="Enumeration\Direction.cs" />
     <Compile Include="Enumeration\Type.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
