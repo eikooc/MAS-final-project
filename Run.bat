@@ -1,0 +1,1 @@
+java -jar server.jar -l levels/MAsimple1.lvl -c "RandomWalkClient\\bin\\Debug\\RandomWalkClient.exe" -g
