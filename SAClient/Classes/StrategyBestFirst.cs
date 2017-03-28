@@ -1,25 +1,25 @@
-﻿using System;
+﻿using Priority_Queue;
+using System;
 using System.Collections.Generic;
-/*
+
 namespace SAClient.Classes
 {
 	public class StrategyBestFirst : Strategy
 	{
-		private PriorityQueue<Node> frontier;
+		private SimplePriorityQueue<Node> frontier;
 		private HashSet<Node> frontierSet;
 		private Heuristic heuristic;
 
 		public StrategyBestFirst(Heuristic h) : base()
 		{
 			this.heuristic = h;
-			frontier = new PriorityQueue<Node>(Comparator.comparingInt((Node n)->h.f(n)));
+            frontier = new SimplePriorityQueue<Node>();
 			frontierSet = new HashSet<Node>();
 		}
 
-
 		public override Node getAndRemoveLeaf()
 		{
-			Node n = frontier.poll();
+			Node n = frontier.Dequeue();
 			frontierSet.Remove(n);
 			return n;
 		}
@@ -28,19 +28,19 @@ namespace SAClient.Classes
 
 		public override void addToFrontier(Node n)
 		{
-			frontier.add(n);
+			frontier.Enqueue(n, heuristic.f(n));
 			frontierSet.Add(n);
 		}
 
 
 		public override int countFrontier()
 		{
-			return frontier.size();
+			return frontier.Count;
 		}
 
 		public override bool frontierIsEmpty()
 		{
-			return frontier.isEmpty();
+			return frontier.Count == 0;
 		}
 
 
@@ -57,4 +57,3 @@ namespace SAClient.Classes
 	}
 
 }
-*/

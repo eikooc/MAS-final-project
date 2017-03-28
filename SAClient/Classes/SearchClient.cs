@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
+using DebugOut;
+using System.Threading;
 
 namespace SAClient.Classes
 {
@@ -14,8 +16,8 @@ namespace SAClient.Classes
 			string line = serverMessages.ReadLine();
 			if (line.Matches("^[a-z]+:\\s*[0-9A-Z](\\s*,\\s*[0-9A-Z])*\\s*$"))
 			{
-				System.Diagnostics.Debug.WriteLine("Error, client does not support colors.");
-				Environment.Exit(1);
+				DebugOut.Debug.WriteLine("Error, client does not support colors.");
+				DebugOut.Debug.Exit(1);
 			}
 
 			bool agentFound = false;
@@ -46,8 +48,8 @@ namespace SAClient.Classes
 					{ // Agent.
 						if (agentFound)
 						{
-							System.Diagnostics.Debug.WriteLine("Error, not a single agent level");
-							Environment.Exit(1);
+							DebugOut.Debug.WriteLine("Error, not a single agent level");
+                            DebugOut.Debug.Exit(1);
 						}
 						agentFound = true;
 						this.initialState.agentRow = row;
@@ -67,8 +69,8 @@ namespace SAClient.Classes
 					}
 					else
 					{
-						System.Diagnostics.Debug.WriteLine("Error, read invalid level character: " + (int)chr);
-						Environment.Exit(1);
+						DebugOut.Debug.WriteLine("Error, read invalid level character: " + (int)chr);
+                        DebugOut.Debug.Exit(1);
 					}
 				}
 
@@ -77,7 +79,7 @@ namespace SAClient.Classes
 
 		public List<Node> Search(Strategy strategy)
 		{
-			System.Diagnostics.Debug.WriteLine("Search starting with strategy %s.\n", strategy.ToString());
+			DebugOut.Debug.WriteLine("Search starting with strategy {0}.\n", strategy.ToString());
 			strategy.addToFrontier(this.initialState);
 
 			int iterations = 0;
@@ -85,7 +87,7 @@ namespace SAClient.Classes
 			{
 				if (iterations == 1000)
 				{
-					System.Diagnostics.Debug.WriteLine(strategy.searchStatus());
+					DebugOut.Debug.WriteLine(strategy.searchStatus());
 					iterations = 0;
 				}
 
@@ -98,7 +100,7 @@ namespace SAClient.Classes
 				//ShowNode(leafNode, "Leaf");
 				if (leafNode.isGoalState())
 				{
-					System.Diagnostics.Debug.WriteLine(" - SOLUTION!!!!!!");
+					DebugOut.Debug.WriteLine(" - SOLUTION!!!!!!");
 					return leafNode.extractPlan();
 				}
 
@@ -116,19 +118,19 @@ namespace SAClient.Classes
 
 		public static void ShowNode(Node n, String name)
 		{
-			System.Diagnostics.Debug.Write("[" + name + "]fn:" + n.fitness + " gn:" + n.g());
-			System.Diagnostics.Debug.Write(" AGENT:[" + n.agentCol + "," + n.agentRow + "]");
-			System.Diagnostics.Debug.Write(" BOX(x,y): ");
+			DebugOut.Debug.Write("[" + name + "]fn:" + n.fitness + " gn:" + n.g());
+			DebugOut.Debug.Write(" AGENT:[" + n.agentCol + "," + n.agentRow + "]");
+			DebugOut.Debug.Write(" BOX(x,y): ");
 			foreach (Tuple box in n.boxList.Keys)
 			{
-				System.Diagnostics.Debug.Write("[" + box.x + "," + box.y + "]");
+				DebugOut.Debug.Write("[" + box.x + "," + box.y + "]");
 			}
-			System.Diagnostics.Debug.Write(" GOAL(x,y): ");
+			DebugOut.Debug.Write(" GOAL(x,y): ");
 			foreach (Tuple goal in Node.goalList.Keys)
 			{
-				System.Diagnostics.Debug.Write("[" + goal.x + "," + goal.y + "] #");
+				DebugOut.Debug.Write("[" + goal.x + "," + goal.y + "] #");
 			}
-			System.Diagnostics.Debug.WriteLine(n.GetHashCode());
+			DebugOut.Debug.WriteLine(n.GetHashCode());
 		}
 
 
@@ -137,7 +139,7 @@ namespace SAClient.Classes
 			TextReader serverMessages = Console.In;
 
 			// Use stderr to print to console
-			System.Diagnostics.Debug.WriteLine("SearchClient initializing. I am sending this using the error output stream.");
+			DebugOut.Debug.WriteLine("SearchClient initializing. I am sending this using the error output stream.");
 
 			// Read level and create the initial state of the problem
 			SearchClient client = new SearchClient(serverMessages);
@@ -153,7 +155,7 @@ namespace SAClient.Classes
 					case "-dfs":
 						strategy = new StrategyDFS();
 						break;
-					/*case "-astar":
+					case "-astar":
 						strategy = new StrategyBestFirst(new AStar(client.initialState));
 						break;
 					case "-wastar":
@@ -162,17 +164,17 @@ namespace SAClient.Classes
 						break;
 					case "-greedy":
 						strategy = new StrategyBestFirst(new Greedy(client.initialState));
-						break;*/
+						break;
 					default:
 						strategy = new StrategyBFS();
-						System.Diagnostics.Debug.WriteLine("Defaulting to BFS search. Use arguments -bfs, -dfs, -astar, -wastar, or -greedy to set the search strategy.");
+						DebugOut.Debug.WriteLine("Defaulting to BFS search. Use arguments -bfs, -dfs, -astar, -wastar, or -greedy to set the search strategy.");
 						break;
 				}
 			}
 			else
 			{
 				strategy = new StrategyBFS();
-				System.Diagnostics.Debug.WriteLine("Defaulting to BFS search. Use arguments -bfs, -dfs, -astar, -wastar, or -greedy to set the search strategy.");
+                DebugOut.Debug.WriteLine("Defaulting to BFS search. Use arguments -bfs, -dfs, -astar, -wastar, or -greedy to set the search strategy.");
 			}
 
 			List<Node> solution;
@@ -182,21 +184,21 @@ namespace SAClient.Classes
 			}
 			catch (OutOfMemoryException ex)
 			{
-				System.Diagnostics.Debug.WriteLine("Maximum memory usage exceeded.");
+				DebugOut.Debug.WriteLine("Maximum memory usage exceeded.");
 				solution = null;
 			}
 
 			if (solution == null)
 			{
-				System.Diagnostics.Debug.WriteLine(strategy.searchStatus());
-				System.Diagnostics.Debug.WriteLine("Unable to solve level.");
-				Environment.Exit(0);
+				DebugOut.Debug.WriteLine(strategy.searchStatus());
+				DebugOut.Debug.WriteLine("Unable to solve level.");
+                DebugOut.Debug.Exit(0);
 			}
 			else
 			{
-				System.Diagnostics.Debug.WriteLine("\nSummary for " + strategy.ToString());
-				System.Diagnostics.Debug.WriteLine("Found solution of length " + solution.Count);
-				System.Diagnostics.Debug.WriteLine(strategy.searchStatus());
+				DebugOut.Debug.WriteLine("\nSummary for " + strategy.ToString());
+				DebugOut.Debug.WriteLine("Found solution of length " + solution.Count);
+				DebugOut.Debug.WriteLine(strategy.searchStatus());
 
 				foreach (Node n in solution)
 				{
@@ -205,12 +207,15 @@ namespace SAClient.Classes
 					String response = serverMessages.ReadLine();
 					if (response.Contains("false"))
 					{
-						System.Diagnostics.Debug.WriteLine("Server responsed with %s to the inapplicable action: %s\n", response, act);
-						System.Diagnostics.Debug.WriteLine("%s was attempted in \n%s\n", act, n.ToString());
+						DebugOut.Debug.WriteLine("Server responsed with {0} to the inapplicable action: {1}\n", response, act);
+						DebugOut.Debug.WriteLine("{0} was attempted in \n{1}\n", act, n.ToString());
 						break;
 					}
 				}
-			}
+                DebugOut.Debug.Exit(0);
+
+            }
+            
 		}
 	}
 }
