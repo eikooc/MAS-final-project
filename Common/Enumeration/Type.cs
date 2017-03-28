@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Common.Enumeration
+﻿namespace Common.Enumeration
 {
-    public enum Type
-    {
-        Move,
-        Push,
-        Pull
-    }
+	public enum Type
+	{
+		Move,
+		Push,
+		Pull,
+		NoOp
+	}
 }
