@@ -1,98 +1,105 @@
-﻿using Common.Enumeration;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using SAClient.Enumerations;
 
 namespace Common.Classes
 {
-	public class Command
-	{
-		public readonly static Command[] Every;
-		public readonly Enumeration.Type actType;
-		public readonly Direction? dir1;
-		public readonly Direction? dir2;
-
-		static Command()
-		{
-			List<Command> cmds = new List<Command>();
-			foreach (Direction d in Enum.GetValues(typeof(Direction)))
-			{
-				cmds.Add(new Command(d));
-			}
-
-			foreach (Direction d1 in Enum.GetValues(typeof(Direction)))
-			{
-				foreach (Direction d2 in Enum.GetValues(typeof(Direction)))
-				{
-					if (!Command.isOpposite(d1, d2))
-					{
-						cmds.Add(new Command(Enumeration.Type.Push, d1, d2));
-					}
-				}
-			}
-
-			foreach (Direction d1 in Enum.GetValues(typeof(Direction)))
-			{
-				foreach (Direction d2 in Enum.GetValues(typeof(Direction)))
-				{
-					if (d1 != d2)
-					{
-						cmds.Add(new Command(Enumeration.Type.Pull, d1, d2));
-					}
-				}
-			}
-
-			cmds.Add(new Command());
-
-			Every = cmds.ToArray();
-		}
-
-		private static bool isOpposite(Direction d1, Direction d2)
-		{
-			return ((int)d1 + (int)d2) == 3;
-		}
-
-		public Command()
-		{
-			actType = Enumeration.Type.NoOp;
-			dir1 = null;
-			dir2 = null;
-
-		}
-
-		public Command(Direction d)
-		{
-			actType = Enumeration.Type.Move;
-			dir1 = d;
-			dir2 = null;
-		}
+    public class Command
+    {
+        public readonly ActionType actionType;
+        public readonly Dir dir1;
+        public readonly Dir? dir2;
 
 
-		public Command(Enumeration.Type t, Direction d1, Direction d2)
-		{
-			actType = t;
-			dir1 = d1;
-			dir2 = d2;
-		}
+        public static readonly Command[] EVERY;
 
-		public string toString()
-		{
-			if (actType == Enumeration.Type.NoOp)
-			{
-				return actType.ToString();
-			}
-			if (actType == Enumeration.Type.Move)
-			{
-				return actType.ToString() + "(" + dir1 + ")";
-			}
+        static Command()
+        {
+            List<Command> cmds = new List<Command>();
+            foreach (Dir d1 in Enum.GetValues(typeof(Dir)))
+            {
+                foreach (Dir d2 in Enum.GetValues(typeof(Dir)))
+                {
+                    if (!Command.isOpposite(d1, d2))
+                    {
+                        cmds.Add(new Command(ActionType.Push, d1, d2));
+                    }
+                }
+            }
+            foreach (Dir d1 in Enum.GetValues(typeof(Dir)))
+            {
+                foreach (Dir d2 in Enum.GetValues(typeof(Dir)))
+                {
+                    if (d1 != d2)
+                    {
+                        cmds.Add(new Command(ActionType.Pull, d1, d2));
+                    }
+                }
+            }
+            foreach (Dir d in Enum.GetValues(typeof(Dir)))
+            {
+                cmds.Add(new Command(d));
+            }
 
-			return actType.ToString() + "(" + dir1 + "," + dir2 + ")";
-		}
+            EVERY = cmds.ToArray();
+        }
 
-		public string toActionString()
-		{
-			return "[" + this.toString() + "]";
-		}
 
-	}
+        public static bool isOpposite(Dir d1, Dir d2)
+        {
+            return ((int)d1 + (int)d2) == 3;
+        }
 
+        public static int dirToRowChange(Dir d)
+        {
+            // South is down one row (1), north is up one row (-1).
+            switch (d)
+            {
+                case Dir.S:
+                    return 1;
+                case Dir.N:
+                    return -1;
+                default:
+                    return 0;
+            }
+        }
+
+        public static int dirToColChange(Dir d)
+        {
+            // East is right one column (1), west is left one column (-1).
+            switch (d)
+            {
+                case Dir.E:
+                    return 1;
+                case Dir.W:
+                    return -1;
+                default:
+                    return 0;
+            }
+        }
+
+
+
+        public Command(Dir d)
+        {
+            this.actionType = ActionType.Move;
+            this.dir1 = d;
+            this.dir2 = null;
+        }
+
+        public Command(ActionType t, Dir d1, Dir d2)
+        {
+            this.actionType = t;
+            this.dir1 = d1;
+            this.dir2 = d2;
+        }
+
+        public override string ToString()
+        {
+            if (this.actionType == ActionType.Move)
+                return string.Format("[{0}({1})]", this.actionType.ToString(), this.dir1.ToString());
+            else
+                return string.Format("[{0}({1},{2})]", this.actionType.ToString(), this.dir1.ToString(), this.dir2.ToString());
+        }
+    }
 }

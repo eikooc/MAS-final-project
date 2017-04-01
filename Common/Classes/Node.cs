@@ -6,7 +6,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Collections;
 
-namespace SAClient.Classes
+namespace Common.Classes
 {
 	public class Node
 	{
@@ -26,17 +26,18 @@ namespace SAClient.Classes
 		// E.g. this.walls[2] is an array of booleans having size MAX_COL.
 		// this.walls[row][col] is true if there's a wall at (row, col)
 		//
+        
 
-		public bool[][] walls;
-		public char[][] boxes;
-		public char[][] goals;
+		public Dictionary<Tuple<int, int>, Box> boxList;
+		public static Dictionary<Tuple<int, int>, Goal> goalList;
+        public static Dictionary<Tuple<int,int>, bool> wallList;
+        public Dictionary<Tuple<int, int>, Agent> agentList;
 
-		public Dictionary<Tuple, Box> boxList;
-		public static Dictionary<Tuple, Goal> goalList;
-        public Dictionary<Tuple, Agent> agentList;
+        public int agentRow;
+        public int agentCol;
 
 
-		public Node parent;
+        public Node parent;
 		public Command action;
 
 		private int _g;
@@ -45,27 +46,14 @@ namespace SAClient.Classes
 
 		public Node(Node parent, int row, int col) : this(parent)
 		{
-			MAX_ROW = row;
-			MAX_COL = col;
-			this.walls = new bool[MAX_ROW][];
-			for (int x = 0; x < walls.Length; x++)
-			{
-				walls[x] = new bool[MAX_COL];
-			}
-			this.boxes = new char[MAX_ROW][];
-			for (int x = 0; x < boxes.Length; x++)
-			{
-				boxes[x] = new char[MAX_COL];
-			}
-			this.goals = new char[MAX_ROW][];
-			for (int x = 0; x < goals.Length; x++)
-			{
-				goals[x] = new char[MAX_COL];
-			}
+			
 
-			this.boxList = new Dictionary<Tuple, Box>();
-			goalList = new Dictionary<Tuple, Goal>();
-            this.agentList = new Dictionary<Tuple, Agent>();
+			this.boxList = new Dictionary<Tuple<int,int>, Box>();
+			goalList = new Dictionary<Tuple<int, int>, Goal>();
+            wallList = new Dictionary<Tuple<int, int>, bool>();
+            this.agentList = new Dictionary<Tuple<int, int>, Agent>();
+
+
 
 		}
 
@@ -80,13 +68,8 @@ namespace SAClient.Classes
 			{
 				this._g = parent.g() + 1;
 			}
-			this.boxes = new char[MAX_ROW][];
-			for (int x = 0; x < boxes.Length; x++)
-			{
-				boxes[x] = new char[MAX_COL];
-			}
-			this.boxList = new Dictionary<Tuple, Box>();
-            this.agentList = new Dictionary<Tuple, Agent>();
+			this.boxList = new Dictionary<Tuple<int, int>, Box>();
+            this.agentList = new Dictionary<Tuple<int, int>, Agent>();
         }
 
 		public int g()
@@ -101,19 +84,22 @@ namespace SAClient.Classes
 
 		public bool isGoalState()
 		{
-			for (int row = 1; row < MAX_ROW - 1; row++)
-			{
-				for (int col = 1; col < MAX_COL - 1; col++)
-				{
-					char g = goals[row][col];
-					char b = char.ToLower(boxes[row][col]);
-					if (g > 0 && b != g)
-					{
-						return false;
-					}
-				}
-			}
-			return true;
+            foreach(Goal goal in goalList.Values)
+            {
+                if (boxList.ContainsKey(Tuple.Create(goal.x, goal.y)))
+                {
+                    if (goal.id == char.ToLower(boxList[Tuple.Create(goal.x, goal.y)].id)) continue;
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            return true;
 		}
 
 		public List<Node> getExpandedNodes()
@@ -152,13 +138,15 @@ namespace SAClient.Classes
 							n.agentRow = newAgentRow;
 							n.agentCol = newAgentCol;
 							Box b = n.getBox(newAgentCol, newAgentRow);
-							if (b != null)
+
+                            if (b != null)
 							{
 								b.y = newBoxRow;
 								b.x = newBoxCol;
-							}
-							n.boxes[newBoxRow][newBoxCol] = this.boxes[newAgentRow][newAgentCol];
-							n.boxes[newAgentRow][newAgentCol] = (char)0;
+
+                                n.boxList.Remove(Tuple.Create(newAgentCol, newAgentRow));
+                                n.boxList.Add(Tuple.Create(b.x, b.y), b);
+                            }
 							expandedNodes.Add(n);
 						}
 					}
@@ -179,12 +167,14 @@ namespace SAClient.Classes
 							n.agentCol = newAgentCol;
 							Box b = n.getBox(boxCol, boxRow);
 							if (b != null)
-							{
-								b.y = this.agentRow;
+                            {
+                                n.boxList.Remove(Tuple.Create(b.x, b.y));
+
+                                b.y = this.agentRow;
 								b.x = this.agentCol;
-							}
-							n.boxes[this.agentRow][this.agentCol] = this.boxes[boxRow][boxCol];
-							n.boxes[boxRow][boxCol] = (char)0;
+
+                                n.boxList.Add(Tuple.Create(b.x, b.y), b);
+                            }
 							expandedNodes.Add(n);
 						}
 					}
@@ -199,17 +189,20 @@ namespace SAClient.Classes
 
 		private bool cellIsFree(int row, int col)
 		{
-			return !this.walls[row][col] && this.boxes[row][col] == 0;
+            Tuple<int, int> pos = Tuple.Create(col, row);
+
+            return (!wallList.ContainsKey(pos) && !boxList.ContainsKey(pos) && !agentList.ContainsKey(pos));
 		}
 
 		public bool boxAt(int row, int col)
-		{
-			return this.boxes[row][col] > 0;
+        {
+            Tuple<int, int> pos = Tuple.Create(col, row);
+            return this.boxList.ContainsKey(pos);
 		}
 
 		public Box getBox(int x, int y)
 		{
-			Tuple key = new Tuple(x, y);
+			Tuple<int,int> key = Tuple.Create(x, y);
 			if(boxList.ContainsKey(key)) 
 			{
 				return boxList[key];
@@ -221,21 +214,23 @@ namespace SAClient.Classes
 		private Node ChildNode()
 		{
 			Node copy = new Node(this);
-			copy.walls = this.walls;
-			copy.goals = this.goals;
 
 			foreach (Box box in boxList.Values)
 			{
-				Tuple t = new Tuple(box.x, box.y);
+				Tuple<int,int> t = Tuple.Create(box.x, box.y);
                 Box newBox = new Box(box.x, box.y, box.id, box.color);
                 newBox.assignedGoal = box.assignedGoal;
                 copy.boxList.Add(t, newBox);
 			}
 
-			for (int row = 0; row < MAX_ROW; row++)
-			{
-				Array.Copy(this.boxes[row], copy.boxes[row], MAX_COL);
-			}
+
+            foreach (Agent agent in agentList.Values)
+            {
+                Tuple<int, int> t = Tuple.Create(agent.x, agent.y);
+                Agent newAgent = new Agent(agent.x, agent.y, agent.id, agent.color);
+                copy.agentList.Add(t, newAgent);
+            }
+            
 			return copy;
 		}
 
@@ -260,7 +255,7 @@ namespace SAClient.Classes
 				int result = 1;
 				result = prime * result + this.agentCol;
 				result = prime * result + this.agentRow;
-				result = prime * result + ((IStructuralEquatable)this.boxes.SelectMany(x=>x).ToArray()).GetHashCode(EqualityComparer<char>.Default);
+				result = prime * result + this.boxList.GetHashCode();
 										  
 				//result = prime * result + ((IStructuralEquatable)this.goals).GetHashCode(comparer);
 				//result = prime * result + ((IStructuralEquatable)this.walls).GetHashCode(comparer);
@@ -282,14 +277,9 @@ namespace SAClient.Classes
 			Node other = (Node)obj;
 			if (this.agentRow != other.agentRow || this.agentCol != other.agentCol)
 				return false;
-			if (!this.boxes.SelectMany(x=>x).SequenceEqual(other.boxes.SelectMany(x=>x)))
+			if (!this.boxList.OrderBy(x => x.Key).SequenceEqual(other.boxList.OrderBy(x => x.Key)))
 				return false;
 
-			//if (!this.goals.Cast<char>().SequenceEqual(other.goals.Cast<char>()))
-			//	return false;
-
-			//if (!this.walls.Cast<char>().SequenceEqual(other.walls.Cast<char>()))
-			//	return false;
 			return true;
 		}
 
@@ -299,27 +289,28 @@ namespace SAClient.Classes
 			StringBuilder s = new StringBuilder();
 			for (int row = 0; row < MAX_ROW; row++)
 			{
-				if (!this.walls[row][0])
+				if (!wallList.ContainsKey(Tuple.Create(0, row)))
 				{
 					break;
 				}
 				for (int col = 0; col < MAX_COL; col++)
 				{
-					if (this.boxes[row][col] > 0)
+                    Tuple<int, int> pos = Tuple.Create(col, row);
+					if (boxList.ContainsKey(pos))
 					{
-						s.Append(this.boxes[row][col]);
+						s.Append(boxList[pos].id);
 					}
-					else if (this.goals[row][col] > 0)
+					else if (goalList.ContainsKey(pos))
 					{
-						s.Append(this.goals[row][col]);
+						s.Append(goalList[pos].id);
 					}
-					else if (this.walls[row][col])
+					else if (wallList.ContainsKey(pos))
 					{
 						s.Append("+");
 					}
-					else if (row == this.agentRow && col == this.agentCol)
+					else if (agentList.ContainsKey(pos))
 					{
-						s.Append("0");
+						s.Append(agentList[pos].id);
 					}
 					else
 					{

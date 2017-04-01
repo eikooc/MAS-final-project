@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -31,13 +31,16 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\Agent.cs" />
+    <Compile Include="Classes\Goal.cs" />
+    <Compile Include="Classes\Box.cs" />
+    <Compile Include="Classes\NodeMultiBody.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Classes\Heuristic.cs" />
     <Compile Include="Classes\Node.cs" />
     <Compile Include="Classes\AStar.cs" />
     <Compile Include="Classes\WeightedAStar.cs" />
     <Compile Include="Classes\Greedy.cs" />
-    <Compile Include="Classes\Tuple.cs" />
     <Compile Include="Classes\Strategy.cs" />
     <Compile Include="Classes\StrategyBFS.cs" />
     <Compile Include="Classes\StrategyDFS.cs" />
@@ -49,8 +52,6 @@
     <Compile Include="Enumerations\Type.cs" />
     <Compile Include="Utility\Utility.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Classes\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

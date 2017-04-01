@@ -10,15 +10,23 @@ namespace SAClient.Classes
 
 		public SearchClient(TextReader serverMessages)
 		{
-			// Read lines specifying colors
-			string line = serverMessages.ReadLine();
-			if (line.Matches("^[a-z]+:\\s*[0-9A-Z](\\s*,\\s*[0-9A-Z])*\\s*$"))
-			{
-				System.Diagnostics.Debug.WriteLine("Error, client does not support colors.");
-				Environment.Exit(1);
-			}
+            Dictionary<char, string> colors = new Dictionary<char, string>();
+            string line, color;
 
-			bool agentFound = false;
+            // Read lines specifying colors
+            while ((line = Console.In.ReadLine()).Matches(@"^[a-z]+:\s*[0-9A-Z](,\s*[0-9A-Z])*\s*"))
+            {
+                line = line.Replace(" ", string.Empty);
+                color = line.Split(':')[0];
+
+                foreach (string id in line.Split(':')[1].Split(','))
+                {
+                    colors.Add(id[0], color);
+                }
+            }
+
+
+            
 
 			// Pre-cache the level to determine its size.
 			List<string> lines = new List<string>();
@@ -44,14 +52,8 @@ namespace SAClient.Classes
 					}
 					else if ('0' <= chr && chr <= '9')
 					{ // Agent.
-						if (agentFound)
-						{
-							System.Diagnostics.Debug.WriteLine("Error, not a single agent level");
-							Environment.Exit(1);
-						}
-						agentFound = true;
-						this.initialState.agentRow = row;
-						this.initialState.agentCol = col;
+                        this.initialState.agentList.Add(new Tuple(row, col), new Agent(row, col, chr, colors[chr]));
+                        
 					}
 					else if ('A' <= chr && chr <= 'Z')
 					{ // Box.

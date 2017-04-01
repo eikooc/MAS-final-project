@@ -1,39 +1,20 @@
 ﻿using System;
 using SAClient.Classes;
 
-namespace SAClient
+namespace Common
 {
-	public class Tuple
+	public class Goal
 	{
 		public int x;
 		public int y;
 
-		public Tuple assignedGoal;
+        public char id;
 
-		public Tuple(int x, int y)
+		public Goal(int x, int y, char id)
 		{
 			this.x = x;
 			this.y = y;
-		}
-
-		public bool hasGoal()
-		{
-			return assignedGoal != null;
-		}
-
-		public bool inGoal()
-		{
-			return this.hasGoal() && this.x == this.assignedGoal.x && this.y == this.assignedGoal.y;
-		}
-
-		public void assignGoal(Tuple goal)
-		{
-			this.assignedGoal = goal;
-		}
-
-		public int goalDistance()
-		{
-			return Math.Abs(this.x - this.assignedGoal.x) + Math.Abs(this.y - this.assignedGoal.y);
+            this.id = id;
 		}
 
 

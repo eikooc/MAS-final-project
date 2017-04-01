@@ -1,4 +1,5 @@
-﻿using Common.Enumeration;
+﻿using Common.Classes;
+using SAClient.Enumerations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,39 +10,41 @@ namespace Common
 {
     class OrderPlanning
     {
-        public Dictionary<string, List<string>> dependencies;
-        public Dictionary<string, Dictionary<string, List<Tuple<int, int>>>> pathLookupTable;
+        public Dictionary<char, List<char>> dependencies;
+        public Dictionary<char, Dictionary<char, List<Tuple<int, int>>>> pathLookupTable;
+        List<Command> cmds;
         public OrderPlanning(Node startingState)
         {
-            dependencies = new Dictionary<string, List<string>>();
+            dependencies = new Dictionary<char, List<char>>();
+            pathLookupTable = new Dictionary<char, Dictionary<char, List<Tuple<int, int>>>>();
+            cmds = new List<Command>();
 
-            foreach (Agent agent in startingState.agents)
+            // add possible moves
+            foreach (Dir d in Enum.GetValues(typeof(Dir)))
             {
-                Tuple<int[,], List<Box>> distToBoxes = DistanceMapping(agent.x, agent.y); // muligvis omvendt x/y
-                pathLookupTable = PathTable(Tuple.Create(agent.id, distToBoxes.Item1), distToBoxes.Item2);
+                cmds.Add(new Command(d));
+            }
+
+            foreach (Agent agent in startingState.agentList.Values)
+            {
+                Tuple<int[,], List<Box>> distToBoxes = DistanceMapping(agent.x, agent.y, startingState); // muligvis omvendt x/y
+                PathTable(Tuple.Create(agent.id,  distToBoxes.Item1), startingState, distToBoxes.Item2);
 
             }
         }
         public Tuple<int[,], List<Box>> DistanceMapping(int row, int col, Node node)
         {
             // initalize variables
-            int[,] distanceMap = new int[node.MAX_COL, node.MAX_ROW];
+            int[,] distanceMap = new int[Node.MAX_ROW, Node.MAX_COL];
             Tuple<int, int> startingPos = Tuple.Create(row, col);
-            List<Command> cmds = new List<Command>();
             Queue<Tuple<int, int>> frontier = new Queue<Tuple<int, int>>();
             Queue<Tuple<int, int>> nextTier = new Queue<Tuple<int, int>>();
 
             List<Box> reachedBoxes = new List<Box>();
-
-            // add possible moves
-            foreach (Direction d in Enum.GetValues(typeof(Direction)))
-            {
-                cmds.Add(new Command(d));
-            }
             // fill 2d array with -1 values
-            for (int i=0; i< node.MAX_COL; i++)
+            for (int i=0; i< Node.MAX_COL; i++)
             {
-                for(int j=0; j < node.MAX_ROW; j++)
+                for(int j=0; j < Node.MAX_ROW; j++)
                 {
                     distanceMap[i, j] = -1;
                 }
@@ -70,16 +73,15 @@ namespace Common
                 // try each possible move
                 foreach (Command c in cmds)
                 {
-                    Tuple<int, int> newPos = Tuple.Create(leafNode.Item1 + Command.DirToRowChange(c), leafNode.Item2 + Command.DirToColChange(c));
+                    Tuple<int, int> newPos = Tuple.Create(leafNode.Item1 + Command.dirToRowChange(c.dir1), leafNode.Item2 + Command.dirToColChange(c.dir1));
                     // if move is possible
-                    if(!node.walls[newPos.Item1][newPos.Item2])
+                    if(!Node.wallList.ContainsKey(Tuple.Create(newPos.Item1, newPos.Item2)))
                     {
-                        Box box = node.boxList.Where(i => i.x == newPos.Item1 && i.y == newPos.Item2).FirstOrDefault();
                         // if box is reached then add box as reachable box and stop this path
-                        if (box != null)// muligvis omvendt x/y
+                        if (node.boxList.ContainsKey(Tuple.Create(newPos.Item1, newPos.Item2)))// muligvis omvendt x/y
                         {
                             distanceMap[newPos.Item1, newPos.Item2] = depth;
-                            reachedBoxes.Add(box);
+                            reachedBoxes.Add(node.boxList[Tuple.Create(newPos.Item1, newPos.Item2)]);
                         }
                         else if(distanceMap[newPos.Item1, newPos.Item2] == -1)
                         {
@@ -94,34 +96,32 @@ namespace Common
                     }
                 }
             }
-
+            // return a map for the agent/goal object with a list of the reached boxes
             return Tuple.Create(distanceMap, reachedBoxes);
         }
 
-        public Dictionary<string, Dictionary<string, List<Tuple<int,int>>>> PathTable(Tuple<string, List<int[,]>> distanceMaps, Node node, List<Box> reachedBoxes)
+        public void PathTable(Tuple<char, int[,]> distanceMaps, Node node, List<Box> reachedBoxes)
         {
             // path lookup table
             Dictionary<string, Dictionary<string, List<Tuple<int, int>>>> pathTable = new Dictionary<string, Dictionary<string, List<Tuple<int, int>>>>();
 
 
-            foreach (int[,] distMap in distanceMaps.Item2)
+            
+            foreach(Box box in reachedBoxes)
             {
-                foreach(Box box in reachedBoxes)
-                {
-                    // foreach reached box in the distance map, perform backtrack to capture path
-                    List<Tuple<int,int>> path = backTrack(box, distMap);
-                    pathTable[distanceMaps.Item1][box.id] = path;
+                // foreach reached box in the distance map, perform backtrack to capture path
+                List<Tuple<int,int>> path = backTrack(box, distanceMaps.Item2, node, distanceMaps.Item1);
+                pathLookupTable[distanceMaps.Item1][box.id] = path;
 
-                }
             }
         }
 
-        private List<Tuple<int, int>> backTrack(Tuple box, int[,] distMap)
+        private List<Tuple<int, int>> backTrack(Box box, int[,] distMap, Node node, char currentGoalName)
         {
             List<Tuple<int, int>> path = new List<Tuple<int, int>>();
             Tuple<int,int> currentPos = Tuple.Create(box.y, box.x);
             // begin at box position
-            int currentDist = distMap[currentPos.item1, currentPos.item2];
+            int currentDist = distMap[currentPos.Item1, currentPos.Item2];
             bool foundPath = true;
             path.Add(currentPos);
 
@@ -130,12 +130,12 @@ namespace Common
                 foundPath = false;
                 foreach (Command c in cmds)
                 {
-                    Tuple<int, int> newPos = Tuple.Create(currentPos.Item1 + Command.DirToRowChange(c), currentPos.Item2 + Command.DirToColChange(c));
+                    Tuple<int, int> newPos = Tuple.Create(currentPos.Item1 + Command.dirToRowChange(c.dir1), currentPos.Item2 + Command.dirToColChange(c.dir1));
                     // if field is marked in the distance map and it's value is lower than current distance, then its part of the optimal path
-                    if (distMap[newPos.item1, newPos.item2] != -1 && distMap[newPos.item1, newPos.item2] < currentDist)
+                    if (distMap[newPos.Item1, newPos.Item2] != -1 && distMap[newPos.Item1, newPos.Item2] < currentDist)
                     {
                         // if end position reached, return path
-                        if (distMap[newPos.item1, newPos.item2] == 0)
+                        if (distMap[newPos.Item1, newPos.Item2] == 0)
                         {
                             path.Add(newPos);
                             return path;
@@ -146,23 +146,26 @@ namespace Common
                             path.Add(newPos);
                             currentPos = newPos;
                             // update depth
-                            currentDist = distMap[newPos.item1, newPos.item2];
+                            currentDist = distMap[newPos.Item1, newPos.Item2];
                         }
                         // if fields contains a box or a goal field then add it as a dependency to this solution
-                        Box box = node.boxList.Where(i => i.x == newPos.Item1 && i.y == newPos.Item2).FirstOrDefault()
-                        if (box != null)
+                        if (node.boxAt(newPos.Item1, newPos.Item2))
                         {
                             if (dependencies.ContainsKey(box.id))
                             {
-                                dependencies[box.id].Add(box.id)
+                                dependencies[currentGoalName].Add(box.id);
                             }
 
                         }
-                        else if (node.goals[newPos.item1, newPos.item2])
+                        else if (Node.goalList.ContainsKey(Tuple.Create(newPos.Item1, newPos.Item2)))
                         {
-                            if (dependencies.ContainsKey(newPos.item1))
+                            if (dependencies.ContainsKey(currentGoalName))
                             {
-                                dependencies[box.id].Add(box.id)
+                                dependencies[currentGoalName].Add(Node.goalList[Tuple.Create(newPos.Item1, newPos.Item2)].id);
+                            }
+                            else
+                            {
+                                dependencies.Add(currentGoalName, new List<char>(Node.goalList[Tuple.Create(newPos.Item1, newPos.Item2)].id));
                             }
                         }
                         // if field that is part of optimal path found, then break.
@@ -171,6 +174,7 @@ namespace Common
                     }
                 }
             }
+            return null;
             System.Diagnostics.Debug.WriteLine("unable to find path while backtracking");
         }
     }
