@@ -1,4 +1,5 @@
 ﻿using Common.Classes;
+using RandomWalkClient.Classes;
 using System;
 using System.Collections.Generic;
 

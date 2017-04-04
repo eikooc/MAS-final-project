@@ -1,4 +1,4 @@
-﻿using Common.Classes;
+﻿using RandomWalkClient.Classes;
 using System;
 
 namespace RandomWalkClient.Classes

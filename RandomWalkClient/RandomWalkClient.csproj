@@ -47,7 +47,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\Agent.cs" />
+    <Compile Include="Classes\Command.cs" />
     <Compile Include="Classes\RandomWalkClient.cs" />
+    <Compile Include="Enumeration\Direction.cs" />
+    <Compile Include="Enumeration\Type.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

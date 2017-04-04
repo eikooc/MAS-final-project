@@ -1,0 +1,1 @@
+java -jar server.jar -l levels/MAsimple1.lvl -c "MAClient\\bin\\Debug\\MAClient.exe" -g

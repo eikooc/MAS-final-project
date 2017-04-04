@@ -1,4 +1,4 @@
-﻿namespace Common.Enumeration
+﻿namespace RandomWalkClient.Enumeration
 {
     public enum Direction : int
     {
