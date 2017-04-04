@@ -40,9 +40,9 @@ namespace MAClient.Classes
                         bestNode = node;
                     }
                 }
+                CurrentNode = bestNode;
             }
 
-            CurrentNode = bestNode;
         }
 
         public void ReadMap()
@@ -127,10 +127,24 @@ namespace MAClient.Classes
                 {
                     TakeAction();
                 }
+                
                 List<Node> plan = CurrentNode.extractPlan();
+                int count = 0;
+                Dictionary<char, string> agentActions = new Dictionary<char, string>();
                 foreach (Node node in plan)
                 {
-                    MakeAction(node.action.ToString(), node.agentList[Tuple.Create(node.agentCol, node.agentRow)].id);
+                    agentActions.Add(node.agentList[Tuple.Create(node.agentCol, node.agentRow)].id, node.action.ToString());
+                    count++;
+
+                    if (count % CurrentNode.agentList.Count == 0 && count != 0)
+                    {
+                        List<char> list = agentActions.Keys.ToList();
+                        list.Sort();
+                        var actions = list.Select(x => agentActions[x]);
+                        MakeAction(actions.ToList());
+                        agentActions = new Dictionary<char, string>();
+                    }
+
                 }
             }
             catch (Exception e)
@@ -168,32 +182,17 @@ namespace MAClient.Classes
         //    return true;
         //}
 
-        public bool MakeAction(string command, char actingAgent)
+        public bool MakeAction(List<string> agentActions)
         {
 
             string jointaction = "[";
             var agents = CurrentNode.agentList.Values.OrderBy(x => x.id);
-            foreach (Agent agent in agents.Take(CurrentNode.agentList.Values.Count - 1))
+            foreach (string command in agentActions.Take(agentActions.Count - 1))
             {
-                if (agent.id == actingAgent)
-                {
-                    jointaction += command.ToString() + ",";
-                }
-                else
-                {
-                    jointaction += ActionType.NoOp + ",";
-                }
+                jointaction += command + ",";
             }
-
-            if (agents.Last().id == actingAgent)
-            {
-                jointaction += command.ToString() + "]";
-            }
-            else
-            {
-                jointaction += ActionType.NoOp + "]";
-            }
-
+                jointaction += agentActions.Last() + "]";
+           
             // place message in buffer
             Console.Out.WriteLine(jointaction);
 
