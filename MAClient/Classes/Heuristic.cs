@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MAClient.Enumerations;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -80,7 +81,32 @@ namespace MAClient.Classes
             return score;
 		}
 
-		public abstract int f(Node n);
+        public int hSubGoal(Node n, int agentx, int agenty)
+        {
+            int score = 0;
+            Tuple<int, int> agentPos = Tuple.Create(agentx, agenty);
+            Agent agent = n.agentList[agentPos];
+            SubGoal currentSubGoal = agent.subgoals.Peek();
+
+            if (currentSubGoal.type == SubGoalType.MoveAgentTo)
+            {
+                int moveDist = Math.Abs(agent.x - currentSubGoal.pos.Item1) + Math.Abs(agent.y - currentSubGoal.pos.Item2);
+                score = moveDist;
+            }
+            else if (currentSubGoal.type == SubGoalType.MoveBoxTo)
+            {
+                int moveToDist = Math.Abs(currentSubGoal.box.x - currentSubGoal.pos.Item1) + Math.Abs(currentSubGoal.box.y -currentSubGoal.pos.Item2);
+                score = moveToDist;
+            }
+            else
+            {
+                throw new  InvalidOperationException("subGoal must have a type");
+            }
+
+        return score;
+        }
+
+        public abstract int f(Node n);
 
 		public int Compare(Node x, Node y)
 		{

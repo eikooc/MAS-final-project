@@ -52,6 +52,9 @@
     <Compile Include="Classes\Memory.cs" />
     <Compile Include="Classes\Node.cs" />
     <Compile Include="Classes\Strategy.cs" />
+    <Compile Include="Classes\StrategyBestFirst.cs" />
+    <Compile Include="Classes\SubGoal.cs" />
+    <Compile Include="Enumerations\SubGoalType.cs" />
     <Compile Include="Enumerations\Dir.cs" />
     <Compile Include="Enumerations\ActionType.cs" />
     <Compile Include="Program.cs" />

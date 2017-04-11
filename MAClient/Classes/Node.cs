@@ -112,6 +112,19 @@ namespace MAClient.Classes
             return true;
         }
 
+        public bool isSubGoalState(SubGoal subGoal)
+        {
+            if (subGoal.type == SubGoalType.MoveBoxTo)
+            {
+                if (subGoal.box.x == subGoal.box.assignedGoal.x && subGoal.box.y == subGoal.box.assignedGoal.y) return true;
+            }
+            else if (subGoal.type == SubGoalType.MoveAgentTo)
+            {
+                if ((Math.Abs(agentCol - subGoal.pos.Item1) + Math.Abs(agentRow - subGoal.pos.Item2)) == 1) return true;
+            }
+            return false;
+        }
+
         public List<Node> getExpandedNodes(int agentCol, int agentRow)
         {
             Tuple<int, int> oldPos = Tuple.Create(agentCol, agentRow);
@@ -206,6 +219,58 @@ namespace MAClient.Classes
             return expandedNodes.OrderBy(item => RND.Next()).ToList();
         }
 
+        public bool ValidateAction(Command c)
+        {
+            Tuple<int, int> oldPos = Tuple.Create(agentCol, agentRow);
+            Agent agent = this.agentList[oldPos];
+            // Determine applicability of action
+            int newAgentRow = agentRow + Command.dirToRowChange(c.dir1);
+            int newAgentCol = agentCol + Command.dirToColChange(c.dir1);
+
+            if (c.actionType == ActionType.Move)
+            {
+                // Check if there's a wall or box on the cell to which the agent is moving
+                if (this.cellIsFree(newAgentRow, newAgentCol))
+                {
+                    return true;
+                }
+            }
+            else if (c.actionType == ActionType.Push)
+            {
+
+                //Debugger.Launch();
+                // Make sure that there's actually a box to move
+                Box bb = getBox(newAgentCol, newAgentRow);
+                if (this.boxAt(newAgentCol, newAgentRow) && bb.color == agent.color)
+                {
+                    int newBoxRow = newAgentRow + Command.dirToRowChange(c.dir2.Value);
+                    int newBoxCol = newAgentCol + Command.dirToColChange(c.dir2.Value);
+                    // .. and that new cell of box is free
+                    if (this.cellIsFree(newBoxRow, newBoxCol))
+                    {
+                        return true;
+                    }
+                }
+            }
+            else if (c.actionType == ActionType.Pull)
+            {
+                // Cell is free where agent is going
+                if (this.cellIsFree(newAgentRow, newAgentCol))
+                {
+                    int boxRow = this.agentRow + Command.dirToRowChange(c.dir2.Value);
+                    int boxCol = this.agentCol + Command.dirToColChange(c.dir2.Value);
+                    // .. and there's a box in "dir2" of the agent
+                    Box bb = getBox(boxCol, boxRow);
+                    if (this.boxAt(boxCol, boxRow) && bb.color == agent.color)
+                    {
+                        return true;
+                    }
+                }
+            }
+            // not a valid action. return false.
+            return false;
+        }
+
         private static void UpdateAgentList(int agentCol, int agentRow, int newAgentRow, int newAgentCol, Node n)
         {
             Tuple<int, int> oldPos = Tuple.Create(agentCol, agentRow);
@@ -263,6 +328,28 @@ namespace MAClient.Classes
             return copy;
         }
 
+        public Node copyNode()
+        {
+            Node copy = new Node(this.parent);
+
+            foreach (Box box in boxList.Values)
+            {
+                Tuple<int, int> t = Tuple.Create(box.x, box.y);
+                Box newBox = new Box(box.x, box.y, box.id, box.color);
+                newBox.assignedGoal = box.assignedGoal;
+                copy.boxList.Add(t, newBox);
+            }
+
+
+            foreach (Agent agent in agentList.Values)
+            {
+                Tuple<int, int> t = Tuple.Create(agent.x, agent.y);
+                Agent newAgent = new Agent(agent.x, agent.y, agent.id, agent.color);
+                copy.agentList.Add(t, newAgent);
+            }
+
+            return copy;
+        }
         public List<Node> extractPlan()
         {
             List<Node> plan = new List<Node>();

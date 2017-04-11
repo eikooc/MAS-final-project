@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace MAClient.Classes
 {
@@ -10,6 +11,8 @@ namespace MAClient.Classes
         public char id;
 
         public string color;
+        public Stack<SubGoal> subgoals;
+        public Node CurrentBeliefs;
 
         public Agent(int x, int y, char id, string color)
         {
@@ -19,7 +22,42 @@ namespace MAClient.Classes
             this.color = color;
         }
 
+        private void run()
+        {
+            while (subgoals.Count>0)
+            {
 
+            }
+        }
+        private List<Node>solveSubgoal(Strategy strategy)
+        {
+
+            while (true)
+            {
+
+                if (strategy.frontierIsEmpty())
+                {
+                    return null;
+                }
+
+                Node leafNode = strategy.getAndRemoveLeaf();
+                //ShowNode(leafNode, "Leaf");
+                if (leafNode.isGoalState())
+                {
+                    System.Diagnostics.Debug.WriteLine(" - SOLUTION!!!!!!");
+                    return leafNode.extractPlan();
+                }
+
+                strategy.addToExplored(leafNode);
+                foreach (Node n in leafNode.getExpandedNodes(x, y))
+                { // The list of expanded nodes is shuffled randomly; see Node.java.
+                    if (!strategy.isExplored(n) && !strategy.inFrontier(n))
+                    {
+                        strategy.addToFrontier(n);
+                    }
+                }
+            }
+        }
 
         public override int GetHashCode()
         {

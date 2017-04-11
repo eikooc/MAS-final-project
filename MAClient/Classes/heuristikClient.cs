@@ -12,6 +12,10 @@ namespace MAClient.Classes
         private List<Agent> agents = new List<Agent>();
         private Dictionary<char, Node> agentPercepts;
         private Node initialState;
+        private Dictionary<string, List<SubGoal>> subGoalDict;
+        private Heuristic heuristic;
+
+        Dictionary<char, string> colors;
 
         private static Node CurrentNode;
 
@@ -23,12 +27,12 @@ namespace MAClient.Classes
 
         private void TakeAction()
         {
-            Heuristic heuristic = new Greedy(initialState);
             List<Node> possibleMoves = new List<Node>();
             Node bestNode = null;
             int max = int.MaxValue;
             foreach (Agent agent in CurrentNode.agentList.Values)
             {
+
                 possibleMoves = CurrentNode.getExpandedNodes(agent.x, agent.y);
                 foreach (Node node in possibleMoves)
                 {
@@ -45,9 +49,29 @@ namespace MAClient.Classes
 
         }
 
+
+        public Dictionary<string, List<SubGoal>> CreateSubGoals(Node initialState)
+        {
+            Dictionary<string, List<SubGoal>> ColorToSubGoalDict = new Dictionary<string, List<SubGoal>>();
+            foreach(Box box in initialState.boxList.Values)
+            {
+                SubGoal MoveToBoxSubGoal = new SubGoal(SubGoalType.MoveAgentTo, box, Tuple.Create(box.x, box.y));
+                SubGoal MoveBoxToSubGoal = new SubGoal(SubGoalType.MoveBoxTo, box, Tuple.Create(box.assignedGoal.x, box.assignedGoal.y));
+                string color = colors[box.id];
+                if (!ColorToSubGoalDict.ContainsKey(color))
+                {
+                    ColorToSubGoalDict.Add(color, new List<SubGoal>());
+                }
+                ColorToSubGoalDict[color].Add(MoveToBoxSubGoal);
+                ColorToSubGoalDict[color].Add(MoveBoxToSubGoal);
+            }
+            return ColorToSubGoalDict;
+
+        }
+
         public void ReadMap()
         {
-            Dictionary<char, string> colors = new Dictionary<char, string>();
+            colors = new Dictionary<char, string>();
             string line, color;
 
             // Read lines specifying colors
@@ -114,6 +138,45 @@ namespace MAClient.Classes
                 y++;
             }
 
+            // intital heuristic on the basis of the read map
+            heuristic = new Greedy(initialState);
+            // create the inital subgoals on the basis of the read map
+            subGoalDict = CreateSubGoals(initialState);
+
+            assignGoals();
+        }
+
+
+        private void assignGoals()
+        {
+            // update agents beliefs to the state of the inital state
+            foreach (Agent agent in CurrentNode.agentList.Values)
+            {
+                agent.CurrentBeliefs = CurrentNode.copyNode();
+
+                }
+            foreach (string color in subGoalDict.Keys)
+            {
+                Stack<SubGoal> assignableSubGoals = new Stack<SubGoal>(subGoalDict[color]);
+                List<Agent> agents = CurrentNode.agentList.Values.Where(x => x.color == color).ToList();
+                while(assignableSubGoals.Count != 0)
+                {
+                    Agent agent = agents.First();
+                    agents.Remove(agent);
+                    SubGoal moveToBox = assignableSubGoals.Pop();
+                    SubGoal moveBoxToGoal = assignableSubGoals.Pop();
+
+                    if (moveToBox.type != SubGoalType.MoveAgentTo || moveBoxToGoal.type != SubGoalType.MoveBoxTo)
+                    {
+                        throw new Exception("wrong goal type");
+                    }
+                    agent.CurrentBeliefs = CurrentNode.copyNode();
+                    agent.subgoals.Push(moveBoxToGoal);
+                    agent.subgoals.Push(moveToBox);
+                }
+                    
+                
+            }
         }
 
         public bool Run()
@@ -121,8 +184,6 @@ namespace MAClient.Classes
             
             try
             {
-
-
                 while (!CurrentNode.isGoalState())
                 {
                     TakeAction();
