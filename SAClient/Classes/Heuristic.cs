@@ -20,7 +20,7 @@ namespace SAClient.Classes
 				x = 0;
 				foreach (char boxY in boxX)
 				{
-					if (boxY == 'A')
+					if (boxY != 0)
 					{
 						Tuple t = new Tuple(x, y);
 						initialState.boxList.Add(t, t);
@@ -37,7 +37,7 @@ namespace SAClient.Classes
 				x = 0;
 				foreach (char goalY in goalX)
 				{
-					if (goalY == 'a')
+					if (goalY != 0)
 					{
 						Tuple t = new Tuple(x, y);
 						Node.goalList.Add(t, t);

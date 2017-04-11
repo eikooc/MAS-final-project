@@ -9,7 +9,7 @@ namespace RandomWalkClient.Classes
 
         public Agent(char id, string color)
         {
-            System.Diagnostics.Debug.WriteLine("Found " + color + " agent " + id);
+            DebugOut.Debug.WriteLine("Found " + color + " agent " + id);
         }
 
         public string Act()

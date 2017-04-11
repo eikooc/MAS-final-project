@@ -9,7 +9,7 @@ namespace RandomWalkClient
         static void Main(string[] args)
         {
             // Use stderr to print to console
-            System.Diagnostics.Debug.WriteLine("Hello from RandomWalkClient. I am sending this using the error outputstream");
+            DebugOut.Debug.WriteLine("Hello from RandomWalkClient. I am sending this using the error outputstream");
             try
             {
                 RngWalkClient client = new RngWalkClient();
