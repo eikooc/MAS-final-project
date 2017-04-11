@@ -1,6 +1,6 @@
 ﻿using System;
 using RandomWalkClient.Classes;
-
+using System.Linq;
 
 namespace RandomWalkClient
 {
