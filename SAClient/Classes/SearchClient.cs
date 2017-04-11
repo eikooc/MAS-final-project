@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using DebugOut;
 using System.Threading;
+using System.Diagnostics;
 
 namespace SAClient.Classes
 {
@@ -136,7 +137,8 @@ namespace SAClient.Classes
 
 		public static void Main(string[] args)
 		{
-			TextReader serverMessages = Console.In;
+            Debugger.Launch();
+            TextReader serverMessages = Console.In;
 
 			// Use stderr to print to console
 			DebugOut.Debug.WriteLine("SearchClient initializing. I am sending this using the error output stream.");
