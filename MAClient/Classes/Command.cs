@@ -80,6 +80,12 @@ namespace MAClient.Classes
         }
 
 
+        public Command(ActionType action)
+        {
+            this.actionType = action;
+            this.dir1 = Dir.E;// skal måske rettes. ingen direction til NoOP
+            this.dir2 = null;
+        }
 
         public Command(Dir d)
         {
@@ -97,7 +103,9 @@ namespace MAClient.Classes
 
         public override string ToString()
         {
-            if (this.actionType == ActionType.Move)
+            if (this.actionType == ActionType.NoOp)
+                return string.Format("{0}", this.actionType.ToString());
+            else if (this.actionType == ActionType.Move)
                 return string.Format("{0}({1})", this.actionType.ToString(), this.dir1.ToString());
             else
                 return string.Format("{0}({1},{2})", this.actionType.ToString(), this.dir1.ToString(), this.dir2.ToString());

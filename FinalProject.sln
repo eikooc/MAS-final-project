@@ -11,14 +11,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SAClient", "SAClient\SAClie
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MAClient", "MAClient\MAClient.csproj", "{E100B174-7744-4EA0-B9C8-78CCC79392CA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Debug", "Debug\Debug.csproj", "{ACC7EFC6-755C-4E20-8B45-FF3E4C59F375}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DebugOut", "DebugOut\DebugOut.csproj", "{D9124664-54F8-4138-A53E-9F49EDAD2CB0}"
 EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -40,10 +35,6 @@ Global
 		{E100B174-7744-4EA0-B9C8-78CCC79392CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E100B174-7744-4EA0-B9C8-78CCC79392CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E100B174-7744-4EA0-B9C8-78CCC79392CA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ACC7EFC6-755C-4E20-8B45-FF3E4C59F375}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ACC7EFC6-755C-4E20-8B45-FF3E4C59F375}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ACC7EFC6-755C-4E20-8B45-FF3E4C59F375}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ACC7EFC6-755C-4E20-8B45-FF3E4C59F375}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D9124664-54F8-4138-A53E-9F49EDAD2CB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D9124664-54F8-4138-A53E-9F49EDAD2CB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D9124664-54F8-4138-A53E-9F49EDAD2CB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -51,5 +42,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

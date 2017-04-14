@@ -10,15 +10,18 @@ namespace MAClient.Classes
         public Goal assignedGoal;
 
         public char id;
+        public static int idCounter = 0;
+        public int uid;
 
         public string color;
 
-        public Box(int x, int y, char id, string color)
+        public Box(int x, int y, char id, string color, Box parent = null)
         {
             this.x = x;
             this.y = y;
             this.id = id;
             this.color = color;
+            this.uid = parent == null ? idCounter++ : parent.uid;
         }
 
         public bool hasGoal()

@@ -43,7 +43,7 @@ namespace MAClient.Classes
 				boxList.Remove(_box);
 			}
 		}
-
+        /*
 		public int h(Node n)
 		{
 			int score = 0;
@@ -80,11 +80,13 @@ namespace MAClient.Classes
             }
             return score;
 		}
+        */
 
-        public int hSubGoal(Node n, int agentx, int agenty)
+        public int h(Node n)
         {
+
             int score = 0;
-            Tuple<int, int> agentPos = Tuple.Create(agentx, agenty);
+            Tuple<int, int> agentPos = Tuple.Create(n.agentCol, n.agentRow);
             Agent agent = n.agentList[agentPos];
             SubGoal currentSubGoal = agent.subgoals.Peek();
 

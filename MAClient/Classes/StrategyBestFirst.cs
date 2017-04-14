@@ -54,6 +54,12 @@ namespace MAClient.Classes
         {
             return "Best-first Search using " + this.heuristic.ToString();
         }
+
+        public override void reset()
+        {
+            frontierSet.Clear();
+            frontier.Clear();
+        }
     }
 
 }

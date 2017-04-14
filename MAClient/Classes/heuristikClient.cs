@@ -4,35 +4,77 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 
 namespace MAClient.Classes
 {
     public class HeuristikClient
     {
-        private List<Agent> agents = new List<Agent>();
-        private Dictionary<char, Node> agentPercepts;
         private Node initialState;
         private Dictionary<string, List<SubGoal>> subGoalDict;
         private Heuristic heuristic;
 
         Dictionary<char, string> colors;
+        Dictionary<char, Agent> agents;
 
         private static Node CurrentNode;
 
         public HeuristikClient()
         {
             ReadMap();
+
+            // update current node to the inital state
             CurrentNode = initialState;
+
+            // intital heuristic on the basis of the read map
+            heuristic = new Greedy(initialState);
+            // create the inital subgoals on the basis of the read map
+            subGoalDict = CreateSubGoals(initialState);
+            // assigne goals to agents
+            assignGoals();
         }
+        
 
         private void TakeAction()
         {
             List<Node> possibleMoves = new List<Node>();
-            Node bestNode = null;
-            int max = int.MaxValue;
-            foreach (Agent agent in CurrentNode.agentList.Values)
+            foreach(char agentId in agents.Keys)
             {
+                Agent agent = CurrentNode.agentList.Values.Where(x => x.id == agentId).FirstOrDefault();
+                // get agents next move
+                Node nextMove = agent.getNextMove();
+                if (nextMove == null)
+                {
+                    Node n = CurrentNode.copyNode();
 
+                    Tuple<int, int> pos = Tuple.Create(agent.x, agent.y);
+                    n.action = new Command(ActionType.NoOp);
+                    n.agentCol = agent.x;
+                    n.agentRow = agent.y;
+                    CurrentNode = CurrentNode.ChildNode();
+                    CurrentNode.updateNode(n, pos);
+                }
+                else
+                {
+                    // convert the node to a command
+                    Command nextAction = nextMove.action;
+                    // validate that the command is legal
+
+                    if (CurrentNode.ValidateAction(nextAction, agent.x, agent.y))
+                    {
+                        Tuple<int, int> pos = Tuple.Create(agent.x, agent.y);
+                        CurrentNode = CurrentNode.ChildNode();
+                        CurrentNode.updateNode(nextMove, pos);
+                    }
+                    else
+                    {
+                        // if not, then update agents beliefs, and replan a plan for the current sub goal
+                        agent.backTrack();
+                        agent.plan = null;
+                        agent.getNextMove();
+                    }
+                }
+                /*
                 possibleMoves = CurrentNode.getExpandedNodes(agent.x, agent.y);
                 foreach (Node node in possibleMoves)
                 {
@@ -45,11 +87,12 @@ namespace MAClient.Classes
                     }
                 }
                 CurrentNode = bestNode;
+                */
             }
 
         }
 
-
+        // intitate subgoals based on boxes and goals in game
         public Dictionary<string, List<SubGoal>> CreateSubGoals(Node initialState)
         {
             Dictionary<string, List<SubGoal>> ColorToSubGoalDict = new Dictionary<string, List<SubGoal>>();
@@ -72,6 +115,7 @@ namespace MAClient.Classes
         public void ReadMap()
         {
             colors = new Dictionary<char, string>();
+            agents = new Dictionary<char, Agent>();
             string line, color;
 
             // Read lines specifying colors
@@ -96,7 +140,6 @@ namespace MAClient.Classes
             initialState = new Node(null, lines.Count, lines[0].Length);
 
             int y = 0;
-            //Debugger.Launch();
             // Read lines specifying level layout
             foreach (string mapLine in lines)
             {
@@ -109,6 +152,7 @@ namespace MAClient.Classes
                     {
                         Agent agent = new Agent(x, y, chr, colors[chr]);
                         initialState.agentList.Add(pos, agent);
+                        agents.Add(agent.id, agent);
                     }
                     else if (chr == '+')
                     { // Wall.
@@ -137,45 +181,39 @@ namespace MAClient.Classes
                 }
                 y++;
             }
-
-            // intital heuristic on the basis of the read map
-            heuristic = new Greedy(initialState);
-            // create the inital subgoals on the basis of the read map
-            subGoalDict = CreateSubGoals(initialState);
-
-            assignGoals();
         }
 
 
         private void assignGoals()
         {
+
             // update agents beliefs to the state of the inital state
             foreach (Agent agent in CurrentNode.agentList.Values)
             {
                 agent.CurrentBeliefs = CurrentNode.copyNode();
+                agent.CurrentBeliefs.agentCol = agent.x;
+                agent.CurrentBeliefs.agentRow = agent.y;
 
-                }
+
+                agent.strategy = new StrategyBestFirst(new Greedy(agent.CurrentBeliefs));
+            }
             foreach (string color in subGoalDict.Keys)
             {
-                Stack<SubGoal> assignableSubGoals = new Stack<SubGoal>(subGoalDict[color]);
+                List<SubGoal> assignableSubGoals = subGoalDict[color];
                 List<Agent> agents = CurrentNode.agentList.Values.Where(x => x.color == color).ToList();
-                while(assignableSubGoals.Count != 0)
+                for (int i = 0; i< assignableSubGoals.Count; i += 2)
                 {
-                    Agent agent = agents.First();
-                    agents.Remove(agent);
-                    SubGoal moveToBox = assignableSubGoals.Pop();
-                    SubGoal moveBoxToGoal = assignableSubGoals.Pop();
+                    Agent agent = agents.ElementAt((i/2)%agents.Count);
+                    SubGoal moveToBox = assignableSubGoals.ElementAt(i);
+                    SubGoal moveBoxToGoal = assignableSubGoals.ElementAt(i + 1);
 
                     if (moveToBox.type != SubGoalType.MoveAgentTo || moveBoxToGoal.type != SubGoalType.MoveBoxTo)
                     {
                         throw new Exception("wrong goal type");
                     }
-                    agent.CurrentBeliefs = CurrentNode.copyNode();
                     agent.subgoals.Push(moveBoxToGoal);
                     agent.subgoals.Push(moveToBox);
                 }
-                    
-                
             }
         }
 
@@ -184,11 +222,12 @@ namespace MAClient.Classes
             
             try
             {
+
                 while (!CurrentNode.isGoalState())
                 {
                     TakeAction();
                 }
-                
+
                 List<Node> plan = CurrentNode.extractPlan();
                 int count = 0;
                 Dictionary<char, string> agentActions = new Dictionary<char, string>();
@@ -210,7 +249,6 @@ namespace MAClient.Classes
             }
             catch (Exception e)
             {
-                Debugger.Launch();
                 throw e;
                 return false;
             }

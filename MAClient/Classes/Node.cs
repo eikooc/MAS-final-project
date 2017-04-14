@@ -63,8 +63,8 @@ namespace MAClient.Classes
         {
             this.boxList = new Dictionary<Tuple<int, int>, Box>();
             this.agentList = new Dictionary<Tuple<int, int>, Agent>();
-            agentRow = pos.Item2;
             agentCol = pos.Item1;
+            agentRow = pos.Item2;
         }
 
         public Node(Node parent)
@@ -116,7 +116,13 @@ namespace MAClient.Classes
         {
             if (subGoal.type == SubGoalType.MoveBoxTo)
             {
-                if (subGoal.box.x == subGoal.box.assignedGoal.x && subGoal.box.y == subGoal.box.assignedGoal.y) return true;
+                Box box = boxList.Values.Where(x => x.uid == subGoal.box.uid).FirstOrDefault();
+                if(box == null)
+                {
+                    throw new Exception("box uid does not exist");
+                }
+
+                if (box.x == subGoal.pos.Item1 && box.y == subGoal.pos.Item2) return true;
             }
             else if (subGoal.type == SubGoalType.MoveAgentTo)
             {
@@ -125,7 +131,7 @@ namespace MAClient.Classes
             return false;
         }
 
-        public List<Node> getExpandedNodes(int agentCol, int agentRow)
+        public List<Node> getExpandedNodes()
         {
             Tuple<int, int> oldPos = Tuple.Create(agentCol, agentRow);
             Agent agent = this.agentList[oldPos];
@@ -133,19 +139,19 @@ namespace MAClient.Classes
             foreach (Command c in Command.EVERY)
             {
                 // Determine applicability of action
-                int newAgentRow = agentRow + Command.dirToRowChange(c.dir1);
                 int newAgentCol = agentCol + Command.dirToColChange(c.dir1);
+                int newAgentRow = agentRow + Command.dirToRowChange(c.dir1);
 
                 if (c.actionType == ActionType.Move)
                 {
                     // Check if there's a wall or box on the cell to which the agent is moving
-                    if (this.cellIsFree(newAgentRow, newAgentCol))
+                    if (this.cellIsFree(newAgentCol, newAgentRow))
                     { // O(m)
                         Node n = this.ChildNode(); // gl: O(n),  ny: O(m), 
-                        UpdateAgentList(agentCol, agentRow, newAgentRow, newAgentCol, n);
+                        UpdateAgentList(agentCol, agentRow, newAgentCol, newAgentRow, n);
                         n.action = c;
-                        n.agentRow = newAgentRow;
                         n.agentCol = newAgentCol;
+                        n.agentRow = newAgentRow;
                         expandedNodes.Add(n);
                     }
                 }
@@ -157,22 +163,22 @@ namespace MAClient.Classes
                     Box bb = getBox(newAgentCol, newAgentRow);
                     if (this.boxAt(newAgentCol, newAgentRow) && bb.color == agent.color)
                     {
-                        int newBoxRow = newAgentRow + Command.dirToRowChange(c.dir2.Value);
                         int newBoxCol = newAgentCol + Command.dirToColChange(c.dir2.Value);
+                        int newBoxRow = newAgentRow + Command.dirToRowChange(c.dir2.Value);
                         // .. and that new cell of box is free
-                        if (this.cellIsFree(newBoxRow, newBoxCol))
+                        if (this.cellIsFree(newBoxCol, newBoxRow))
                         {
                             Node n = this.ChildNode();
-                            UpdateAgentList(agentCol, agentRow, newAgentRow, newAgentCol, n);
+                            UpdateAgentList(agentCol, agentRow, newAgentCol, newAgentRow, n);
                             n.action = c;
-                            n.agentRow = newAgentRow;
                             n.agentCol = newAgentCol;
+                            n.agentRow = newAgentRow;
                             Box b = n.getBox(newAgentCol, newAgentRow);
 
                             if (b != null)
                             {
-                                b.y = newBoxRow;
                                 b.x = newBoxCol;
+                                b.y = newBoxRow;
 
                                 n.boxList.Remove(Tuple.Create(newAgentCol, newAgentRow));
                                 n.boxList.Add(Tuple.Create(b.x, b.y), b);
@@ -184,7 +190,7 @@ namespace MAClient.Classes
                 else if (c.actionType == ActionType.Pull)
                 {
                     // Cell is free where agent is going
-                    if (this.cellIsFree(newAgentRow, newAgentCol))
+                    if (this.cellIsFree(newAgentCol, newAgentRow))
                     {
                         int boxRow = this.agentRow + Command.dirToRowChange(c.dir2.Value);
                         int boxCol = this.agentCol + Command.dirToColChange(c.dir2.Value);
@@ -193,7 +199,7 @@ namespace MAClient.Classes
                         if (this.boxAt(boxCol, boxRow) && bb.color == agent.color)
                         {
                             Node n = this.ChildNode();
-                            UpdateAgentList(agentCol, agentRow, newAgentRow, newAgentCol, n);
+                            UpdateAgentList(agentCol, agentRow, newAgentCol, newAgentRow, n);
 
                             n.action = c;
                             n.agentRow = newAgentRow;
@@ -219,7 +225,7 @@ namespace MAClient.Classes
             return expandedNodes.OrderBy(item => RND.Next()).ToList();
         }
 
-        public bool ValidateAction(Command c)
+        public bool ValidateAction(Command c, int agentCol, int agentRow)
         {
             Tuple<int, int> oldPos = Tuple.Create(agentCol, agentRow);
             Agent agent = this.agentList[oldPos];
@@ -230,7 +236,7 @@ namespace MAClient.Classes
             if (c.actionType == ActionType.Move)
             {
                 // Check if there's a wall or box on the cell to which the agent is moving
-                if (this.cellIsFree(newAgentRow, newAgentCol))
+                if (this.cellIsFree(newAgentCol, newAgentRow))
                 {
                     return true;
                 }
@@ -246,7 +252,7 @@ namespace MAClient.Classes
                     int newBoxRow = newAgentRow + Command.dirToRowChange(c.dir2.Value);
                     int newBoxCol = newAgentCol + Command.dirToColChange(c.dir2.Value);
                     // .. and that new cell of box is free
-                    if (this.cellIsFree(newBoxRow, newBoxCol))
+                    if (this.cellIsFree(newBoxCol, newBoxRow))
                     {
                         return true;
                     }
@@ -255,7 +261,7 @@ namespace MAClient.Classes
             else if (c.actionType == ActionType.Pull)
             {
                 // Cell is free where agent is going
-                if (this.cellIsFree(newAgentRow, newAgentCol))
+                if (this.cellIsFree(newAgentCol, newAgentRow))
                 {
                     int boxRow = this.agentRow + Command.dirToRowChange(c.dir2.Value);
                     int boxCol = this.agentCol + Command.dirToColChange(c.dir2.Value);
@@ -271,7 +277,7 @@ namespace MAClient.Classes
             return false;
         }
 
-        private static void UpdateAgentList(int agentCol, int agentRow, int newAgentRow, int newAgentCol, Node n)
+        private static void UpdateAgentList(int agentCol, int agentRow, int newAgentCol, int newAgentRow, Node n)
         {
             Tuple<int, int> oldPos = Tuple.Create(agentCol, agentRow);
             Agent agent = n.agentList[oldPos];
@@ -281,7 +287,17 @@ namespace MAClient.Classes
             n.agentList.Add(Tuple.Create(newAgentCol, newAgentRow), agent);
         }
 
-        private bool cellIsFree(int row, int col)
+        private static void UpdateBoxList(int boxCol, int boxRow, int newBoxCol, int newBoxRow, Node n)
+        {
+            Tuple<int, int> oldPos = Tuple.Create(boxCol, boxRow);
+            Box box = n.boxList[oldPos];
+            n.boxList.Remove(oldPos);
+            box.x = newBoxCol;
+            box.y = newBoxRow;
+            n.boxList.Add(Tuple.Create(newBoxCol, newBoxRow), box);
+        }
+
+        private bool cellIsFree(int col, int row)
         {
             Tuple<int, int> pos = Tuple.Create(col, row);
 
@@ -305,14 +321,15 @@ namespace MAClient.Classes
 
         }
 
-        private Node ChildNode()
+        public Node ChildNode()
         {
             Node copy = new Node(this);
-
+            copy.agentCol = this.agentCol;
+            copy.agentRow = this.agentRow;
             foreach (Box box in boxList.Values)
             {
                 Tuple<int, int> t = Tuple.Create(box.x, box.y);
-                Box newBox = new Box(box.x, box.y, box.id, box.color);
+                Box newBox = new Box(box.x, box.y, box.id, box.color, box);
                 newBox.assignedGoal = box.assignedGoal;
                 copy.boxList.Add(t, newBox);
             }
@@ -323,6 +340,10 @@ namespace MAClient.Classes
                 Tuple<int, int> t = Tuple.Create(agent.x, agent.y);
                 Agent newAgent = new Agent(agent.x, agent.y, agent.id, agent.color);
                 copy.agentList.Add(t, newAgent);
+                newAgent.subgoals = agent.subgoals;
+                newAgent.plan = agent.plan;
+                newAgent.strategy = agent.strategy;
+                newAgent.CurrentBeliefs = agent.CurrentBeliefs;
             }
 
             return copy;
@@ -335,7 +356,7 @@ namespace MAClient.Classes
             foreach (Box box in boxList.Values)
             {
                 Tuple<int, int> t = Tuple.Create(box.x, box.y);
-                Box newBox = new Box(box.x, box.y, box.id, box.color);
+                Box newBox = new Box(box.x, box.y, box.id, box.color, box);
                 newBox.assignedGoal = box.assignedGoal;
                 copy.boxList.Add(t, newBox);
             }
@@ -346,10 +367,35 @@ namespace MAClient.Classes
                 Tuple<int, int> t = Tuple.Create(agent.x, agent.y);
                 Agent newAgent = new Agent(agent.x, agent.y, agent.id, agent.color);
                 copy.agentList.Add(t, newAgent);
+                newAgent.subgoals = agent.subgoals;
+                newAgent.plan = agent.plan;
+                newAgent.strategy = agent.strategy;
+                newAgent.CurrentBeliefs = agent.CurrentBeliefs;
             }
 
             return copy;
         }
+
+        public void updateNode(Node otherNode,Tuple<int,int> oldAgentPos)
+        {
+            UpdateAgentList(oldAgentPos.Item1, oldAgentPos.Item2, otherNode.agentCol, otherNode.agentRow, this);
+            this.action = otherNode.action;
+            this.agentCol = otherNode.agentCol;
+            this.agentRow = otherNode.agentRow;
+            if (otherNode.action.actionType == ActionType.Pull)
+            {
+                int deltaBoxX = -Command.dirToColChange(otherNode.action.dir2.Value);
+                int deltaBoxY = -Command.dirToRowChange(otherNode.action.dir2.Value);
+                UpdateBoxList(oldAgentPos.Item1 + deltaBoxX, oldAgentPos.Item2 + deltaBoxY, oldAgentPos.Item1, oldAgentPos.Item2, this);
+            }
+            else if (otherNode.action.actionType == ActionType.Push)
+            {
+                int deltaBoxX = Command.dirToColChange(otherNode.action.dir2.Value);
+                int deltaBoxY = Command.dirToRowChange(otherNode.action.dir2.Value);
+                UpdateBoxList(otherNode.agentCol, otherNode.agentRow, otherNode.agentCol + deltaBoxX, otherNode.agentRow + deltaBoxY, this);
+            }
+        }
+
         public List<Node> extractPlan()
         {
             List<Node> plan = new List<Node>();

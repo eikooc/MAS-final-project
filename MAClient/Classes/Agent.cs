@@ -13,6 +13,8 @@ namespace MAClient.Classes
         public string color;
         public Stack<SubGoal> subgoals;
         public Node CurrentBeliefs;
+        public Stack<Node> plan;
+        public Strategy strategy;
 
         public Agent(int x, int y, char id, string color)
         {
@@ -20,18 +22,59 @@ namespace MAClient.Classes
             this.y = y;
             this.id = id;
             this.color = color;
+            subgoals = new Stack<SubGoal>();
         }
 
-        private void run()
+        public void run()
         {
-            while (subgoals.Count>0)
+            // NOT DONE
+            strategy = new StrategyBestFirst(new Greedy(CurrentBeliefs));
+            while(subgoals.Count != 0)
             {
-
+                if(plan == null)
+                {
+                    plan = new Stack<Node>(solveSubgoal(strategy));
+                }
             }
         }
+
+        public Node getNextMove()
+        {
+            if (plan == null)
+            {
+                if(subgoals.Count != 0)
+                {
+                    CurrentBeliefs.parent = null;
+                    strategy.reset();
+                    strategy.addToFrontier(CurrentBeliefs);
+                    List<Node> planList = solveSubgoal(strategy);
+                    planList.Reverse();
+                    plan = new Stack<Node>(planList);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            
+            Node nextMove = plan.Pop();
+
+            // pass on the remaining plan to agent in the next state
+            if (plan.Count == 0)
+            {
+                plan = null;
+            }
+            CurrentBeliefs = nextMove;
+            return nextMove;
+        }
+        public void backTrack()
+        {
+            this.CurrentBeliefs = CurrentBeliefs.parent;
+        }
+
         private List<Node>solveSubgoal(Strategy strategy)
         {
-
+            SubGoal subGoal = subgoals.Peek();
             while (true)
             {
 
@@ -42,14 +85,15 @@ namespace MAClient.Classes
 
                 Node leafNode = strategy.getAndRemoveLeaf();
                 //ShowNode(leafNode, "Leaf");
-                if (leafNode.isGoalState())
+                if (leafNode.isSubGoalState(subGoal))
                 {
+                    subgoals.Pop();
                     System.Diagnostics.Debug.WriteLine(" - SOLUTION!!!!!!");
                     return leafNode.extractPlan();
                 }
 
                 strategy.addToExplored(leafNode);
-                foreach (Node n in leafNode.getExpandedNodes(x, y))
+                foreach (Node n in leafNode.getExpandedNodes())
                 { // The list of expanded nodes is shuffled randomly; see Node.java.
                     if (!strategy.isExplored(n) && !strategy.inFrontier(n))
                     {
