@@ -48,27 +48,29 @@ namespace MAClient.Classes
 
         public override int GetHashCode()
         {
-            return (this.y * Node.MAX_ROW) + this.x;
+
+            int prime = 31;
+            int result = 1;
+            result = prime * result + this.uid;
+            result = prime * result + ((this.y * Node.MAX_ROW) + this.x);
+            return result;
         }
 
 
-        //public override bool Equals(Object obj)
-        //{
+        public override bool Equals(Object obj)
+        {
 
-        //    if (this == obj)
-        //        return true;
+            if (this == obj)
+                return true;
 
-        //    if (obj == null)
-        //        return false;
+            if (obj == null)
+                return false;
 
-        //    if (!(obj is Tuple))
-        //        return false;
+            if (!(obj is Box))
+                return false;
 
-        //    Tuple other = (Tuple)obj;
-        //    if (this.x != other.x || this.y != other.y)
-        //        return false;
-
-        //    return true;
-        //}
+            Box other = (Box)obj;
+            return (this.x == other.x && this.y == other.y && this.uid == other.uid);
+        }
     }
 }

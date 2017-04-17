@@ -45,14 +45,7 @@ namespace MAClient.Classes
                 Node nextMove = agent.getNextMove();
                 if (nextMove == null)
                 {
-                    Node n = CurrentNode.copyNode();
-
-                    Tuple<int, int> pos = Tuple.Create(agent.x, agent.y);
-                    n.action = new Command(ActionType.NoOp);
-                    n.agentCol = agent.x;
-                    n.agentRow = agent.y;
-                    CurrentNode = CurrentNode.ChildNode();
-                    CurrentNode.updateNode(n, pos);
+                    performNoOp(agent);
                 }
                 else
                 {
@@ -71,7 +64,7 @@ namespace MAClient.Classes
                         // if not, then update agents beliefs, and replan a plan for the current sub goal
                         agent.backTrack();
                         agent.plan = null;
-                        agent.getNextMove();
+                        performNoOp(agent);
                     }
                 }
                 /*
@@ -90,6 +83,18 @@ namespace MAClient.Classes
                 */
             }
 
+        }
+
+        private static void performNoOp(Agent agent)
+        {
+            Node n = CurrentNode.copyNode();
+
+            Tuple<int, int> pos = Tuple.Create(agent.x, agent.y);
+            n.action = new Command(ActionType.NoOp);
+            n.agentCol = agent.x;
+            n.agentRow = agent.y;
+            CurrentNode = CurrentNode.ChildNode();
+            CurrentNode.updateNode(n, pos);
         }
 
         // intitate subgoals based on boxes and goals in game
@@ -249,6 +254,7 @@ namespace MAClient.Classes
             }
             catch (Exception e)
             {
+                Debugger.Launch();
                 throw e;
                 return false;
             }

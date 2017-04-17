@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Common.Classes;
+using System;
 using System.Collections.Generic;
 
 namespace MAClient.Classes
@@ -15,6 +16,8 @@ namespace MAClient.Classes
         public Node CurrentBeliefs;
         public Stack<Node> plan;
         public Strategy strategy;
+
+        
 
         public Agent(int x, int y, char id, string color)
         {
@@ -44,12 +47,16 @@ namespace MAClient.Classes
             {
                 if(subgoals.Count != 0)
                 {
-                    CurrentBeliefs.parent = null;
-                    strategy.reset();
-                    strategy.addToFrontier(CurrentBeliefs);
-                    List<Node> planList = solveSubgoal(strategy);
-                    planList.Reverse();
-                    plan = new Stack<Node>(planList);
+                    List<Node> planList = new List<Node>();
+                    while (planList.Count == 0)
+                    {
+                        CurrentBeliefs.parent = null;
+                        strategy.reset();
+                        strategy.addToFrontier(CurrentBeliefs);
+                        planList = solveSubgoal(strategy);
+                        planList.Reverse();
+                        plan = new Stack<Node>(planList);
+                    }
                 }
                 else
                 {

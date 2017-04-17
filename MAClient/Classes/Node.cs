@@ -6,6 +6,7 @@ using System.Linq;
 using System.Collections;
 using MAClient.Enumerations;
 using System.Diagnostics;
+using Common.Classes;
 
 namespace MAClient.Classes
 {
@@ -36,7 +37,7 @@ namespace MAClient.Classes
 
         public int agentRow;
         public int agentCol;
-
+        
 
         public Node parent;
         public Command action;
@@ -263,8 +264,8 @@ namespace MAClient.Classes
                 // Cell is free where agent is going
                 if (this.cellIsFree(newAgentCol, newAgentRow))
                 {
-                    int boxRow = this.agentRow + Command.dirToRowChange(c.dir2.Value);
-                    int boxCol = this.agentCol + Command.dirToColChange(c.dir2.Value);
+                    int boxRow = agentRow + Command.dirToRowChange(c.dir2.Value);
+                    int boxCol = agentCol + Command.dirToColChange(c.dir2.Value);
                     // .. and there's a box in "dir2" of the agent
                     Box bb = getBox(boxCol, boxRow);
                     if (this.boxAt(boxCol, boxRow) && bb.color == agent.color)
@@ -333,7 +334,7 @@ namespace MAClient.Classes
                 newBox.assignedGoal = box.assignedGoal;
                 copy.boxList.Add(t, newBox);
             }
-
+            
 
             foreach (Agent agent in agentList.Values)
             {
@@ -360,7 +361,7 @@ namespace MAClient.Classes
                 newBox.assignedGoal = box.assignedGoal;
                 copy.boxList.Add(t, newBox);
             }
-
+            
 
             foreach (Agent agent in agentList.Values)
             {
@@ -384,8 +385,8 @@ namespace MAClient.Classes
             this.agentRow = otherNode.agentRow;
             if (otherNode.action.actionType == ActionType.Pull)
             {
-                int deltaBoxX = -Command.dirToColChange(otherNode.action.dir2.Value);
-                int deltaBoxY = -Command.dirToRowChange(otherNode.action.dir2.Value);
+                int deltaBoxX = Command.dirToColChange(otherNode.action.dir2.Value);
+                int deltaBoxY = Command.dirToRowChange(otherNode.action.dir2.Value);
                 UpdateBoxList(oldAgentPos.Item1 + deltaBoxX, oldAgentPos.Item2 + deltaBoxY, oldAgentPos.Item1, oldAgentPos.Item2, this);
             }
             else if (otherNode.action.actionType == ActionType.Push)
@@ -417,7 +418,8 @@ namespace MAClient.Classes
                 int result = 1;
                 result = prime * result + this.agentCol;
                 result = prime * result + this.agentRow;
-                result = prime * result + this.boxList.GetHashCode();
+                int boxHash = ((IStructuralEquatable)this.boxList.Values.ToArray()).GetHashCode(EqualityComparer<Box>.Default);
+                result = prime * result + boxHash;
 
                 //result = prime * result + ((IStructuralEquatable)this.goals).GetHashCode(comparer);
                 //result = prime * result + ((IStructuralEquatable)this.walls).GetHashCode(comparer);
