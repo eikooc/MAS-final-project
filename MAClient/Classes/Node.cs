@@ -98,15 +98,8 @@ namespace MAClient.Classes
         {
             foreach (Goal goal in goalList.Entities)
             {
-                if (boxList[goal.col, goal.row] != null)
-                {
-                    if (goal.id == char.ToLower(boxList[goal.col, goal.row].id)) continue;
-                    else
-                    {
-                        return false;
-                    }
-                }
-                else
+                Box box = boxList[goal.col, goal.row];
+                if (box == null || goal.id != char.ToLower(box.id))
                 {
                     return false;
                 }
@@ -124,11 +117,11 @@ namespace MAClient.Classes
                     throw new Exception("box uid does not exist");
                 }
 
-                if (box.col == subGoal.pos.Item1 && box.row == subGoal.pos.Item2) return true;
+                return (box.col == subGoal.pos.Item1 && box.row == subGoal.pos.Item2);
             }
             else if (subGoal.type == SubGoalType.MoveAgentTo)
             {
-                if ((Math.Abs(agentCol - subGoal.pos.Item1) + Math.Abs(agentRow - subGoal.pos.Item2)) == 1) return true;
+                return ((Math.Abs(agentCol - subGoal.pos.Item1) + Math.Abs(agentRow - subGoal.pos.Item2)) == 1);
             }
             return false;
         }
@@ -147,8 +140,8 @@ namespace MAClient.Classes
                 {
                     // Check if there's a wall or box on the cell to which the agent is moving
                     if (this.cellIsFree(newAgentCol, newAgentRow))
-                    { // O(m)
-                        Node n = this.ChildNode(); // gl: O(n),  ny: O(m), 
+                    {
+                        Node n = this.ChildNode();
                         n.agentList.UpdatePosition(agentCol, agentRow, newAgentCol, newAgentRow);
                         n.action = c;
                         n.agentCol = newAgentCol;
@@ -158,8 +151,6 @@ namespace MAClient.Classes
                 }
                 else if (c.actionType == ActionType.Push)
                 {
-
-                    //Debugger.Launch();
                     // Make sure that there's actually a box to move
                     Box bb = getBox(newAgentCol, newAgentRow);
                     if (this.boxAt(newAgentCol, newAgentRow) && bb.color == agent.color)
@@ -174,112 +165,92 @@ namespace MAClient.Classes
                             n.action = c;
                             n.agentCol = newAgentCol;
                             n.agentRow = newAgentRow;
-                            Box b = n.getBox(newAgentCol, newAgentRow);
-
-                            if (b != null)
-                            {
-                                n.boxList.UpdatePosition(newAgentCol, newAgentRow, newBoxCol, newBoxRow);
-
-                            }
+                            n.boxList.UpdatePosition(newAgentCol, newAgentRow, newBoxCol, newBoxRow);
                             expandedNodes.Add(n);
                         }
                     }
                 }
                 else if (c.actionType == ActionType.Pull)
                 {
-                    // Cell is free where agent is going
-                    if (this.cellIsFree(newAgentCol, newAgentRow))
-                    {
-                        int boxRow = this.agentRow + Command.dirToRowChange(c.dir2.Value);
-                        int boxCol = this.agentCol + Command.dirToColChange(c.dir2.Value);
-                        // .. and there's a box in "dir2" of the agent
-                        Box bb = getBox(boxCol, boxRow);
-                        if (this.boxAt(boxCol, boxRow) && bb.color == agent.color)
+                    int boxRow = this.agentRow + Command.dirToRowChange(c.dir2.Value);
+                    int boxCol = this.agentCol + Command.dirToColChange(c.dir2.Value);
+                    // .. and there's a box in "dir2" of the agent
+                    Box bb = getBox(boxCol, boxRow);
+                    if (this.boxAt(boxCol, boxRow) && bb.color == agent.color)
+                    { 
+                        // Cell is free where agent is going
+                        if (this.cellIsFree(newAgentCol, newAgentRow))
                         {
                             Node n = this.ChildNode();
                             n.agentList.UpdatePosition(agentCol, agentRow, newAgentCol, newAgentRow);
-
                             n.action = c;
                             n.agentRow = newAgentRow;
                             n.agentCol = newAgentCol;
-                            Box b = n.getBox(boxCol, boxRow);
-                            if (b != null)
-                            {
-                                n.boxList.UpdatePosition(boxCol, boxRow, this.agentCol, this.agentRow);
-                            }
+                            n.boxList.UpdatePosition(boxCol, boxRow, this.agentCol, this.agentRow);
                             expandedNodes.Add(n);
                         }
                     }
                 }
             }
-
-
-            // Collections.shuffle(expandedNodes, RND);
+            
             return expandedNodes.OrderBy(item => RND.Next()).ToList();
         }
 
         public IEntity ValidateAction(Command c, int agentCol, int agentRow)
         {
-            Agent agent = this.agentList[agentCol, agentRow];
-            // Determine applicability of action
-            int newAgentRow = agentRow + Command.dirToRowChange(c.dir1);
-            int newAgentCol = agentCol + Command.dirToColChange(c.dir1);
-
+            bool canValidate = false;
             int col = -1;
             int row = -1;
+            int newAgentRow = agentRow + Command.dirToRowChange(c.dir1);
+            int newAgentCol = agentCol + Command.dirToColChange(c.dir1);
+            Agent agent = this.agentList[agentCol, agentRow];
 
-            if (c.actionType == ActionType.Move)
+            switch (c.actionType)
             {
-                // Check if there's a wall or box on the cell to which the agent is moving
-                col = newAgentCol;
-                row = newAgentRow;
-            }
-            else if (c.actionType == ActionType.Push)
-            {
-                // Make sure that there's actually a box to move
-                Box box = getBox(newAgentCol, newAgentRow);
-                if (box != null && box.color == agent.color)
-                {
-                    col = newAgentCol + Command.dirToColChange(c.dir2.Value);
-                    row = newAgentRow + Command.dirToRowChange(c.dir2.Value);
-                }
-                else
-                {
-                    // box is no longer at expected position
-                    int boxUid = agent.CurrentBeliefs.parent.boxList[newAgentCol, newAgentRow].uid;
-                    return boxList[boxUid];
-                }
-            }
-            else if (c.actionType == ActionType.Pull)
-            {
-                // Cell is free where agent is going and there's a box in "dir2" of the agent
-                int boxRow = agentRow + Command.dirToRowChange(c.dir2.Value);
-                int boxCol = agentCol + Command.dirToColChange(c.dir2.Value);
-                Box box = getBox(boxCol, boxRow);
-                if (box != null && box.color == agent.color)
-                {
+                case ActionType.Move:
                     col = newAgentCol;
                     row = newAgentRow;
-                }
-                else
-                {
-                    // box is no longer at expected position
-                    int boxUid = agent.CurrentBeliefs.parent.boxList[boxCol, boxRow].uid;
-                    return boxList[boxUid];
-                }
+                    canValidate = true;
+                    break;
 
+                case ActionType.Push:
+                    canValidate = this.HasExpectedBox(newAgentCol, newAgentRow, agent.color);
+                    col = canValidate ? newAgentCol + Command.dirToColChange(c.dir2.Value) : newAgentCol;
+                    row = canValidate ? newAgentRow + Command.dirToRowChange(c.dir2.Value) : newAgentRow;
+                    break;
+
+                case ActionType.Pull:
+                    // Cell is free where agent is going and there's a box in "dir2" of the agent
+                    int boxRow = agentRow + Command.dirToRowChange(c.dir2.Value);
+                    int boxCol = agentCol + Command.dirToColChange(c.dir2.Value);
+
+                    canValidate = this.HasExpectedBox(boxCol, boxRow, agent.color);
+                    col = canValidate ? newAgentCol : boxCol;
+                    row = canValidate ? newAgentRow : boxRow;
+                    break;
             }
 
-            if (col > -1 && row > -1)
+            if (canValidate)
             {
                 bool? b = parent?.cellIsFree(col, row);
                 bool valid = (this.cellIsFree(col, row) && (b.HasValue && b.Value || !b.HasValue));
                 return valid ? null : this.GetEntityAt(col, row);
             }
+            // box is no longer at expected position
+            else
+            {
+                int boxUid = agent.CurrentBeliefs.parent.boxList[col, row].uid;
+                return boxList[boxUid];
+            }
 
             // not a valid action. return false.
             throw new Exception("could not validate action, but no agent or box found.");
+        }
 
+        bool HasExpectedBox(int col, int row, string color)
+        {
+            Box box = getBox(col, row);
+            return box != null && box.color == color;
         }
 
         private IEntity GetEntityAt(int col, int row)
@@ -328,22 +299,16 @@ namespace MAClient.Classes
             Node copy = new Node(this);
             copy.agentCol = this.agentCol;
             copy.agentRow = this.agentRow;
-
             copy.boxList = this.boxList.Clone();
-
             copy.agentList = this.agentList.Clone();
-
             return copy;
         }
 
         public Node copyNode()
         {
             Node copy = new Node(this.parent);
-
             copy.boxList = this.boxList.Clone();
-
             copy.agentList = this.agentList.Clone();
-
             return copy;
         }
 
@@ -391,8 +356,6 @@ namespace MAClient.Classes
                 int boxHash = ((IStructuralEquatable)this.boxList.Entities.ToArray()).GetHashCode(EqualityComparer<Box>.Default);
                 result = prime * result + boxHash;
 
-                //result = prime * result + ((IStructuralEquatable)this.goals).GetHashCode(comparer);
-                //result = prime * result + ((IStructuralEquatable)this.walls).GetHashCode(comparer);
                 this._hash = result;
             }
             return this._hash;

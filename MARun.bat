@@ -1,1 +1,1 @@
-java -jar server.jar -l levels/MA2Agent1Box.lvl -c "MAClient\\bin\\Debug\\MAClient.exe" -g
+java -jar server.jar -l levels/collision3.lvl -c "MAClient\\bin\\Debug\\MAClient.exe" -g

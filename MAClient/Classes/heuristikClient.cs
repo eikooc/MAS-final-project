@@ -67,28 +67,43 @@ namespace MAClient.Classes
                         if (obstacle is Box)
                         {
                             Box encounteredBox = (Box)obstacle;
-                            Box oldBox = agent.CurrentBeliefs.boxList[encounteredBox.uid];
-                            agent.CurrentBeliefs.boxList.UpdatePosition(oldBox.col, oldBox.row, encounteredBox.col, encounteredBox.row);
-                            agent.plan = null;
-                            // opdaterer kun en box position men ikke en players hvis den blive "handlet". Kan ikke skelne imellem en box i bevægelse og en stationær
 
+                            // opdaterer kun en box position men ikke en players hvis den blive "handlet". Kan ikke skelne imellem en box i bevægelse og en stationær
+                            this.UpdateCurrentBelief(encounteredBox, CurrentNode.boxList, agent.CurrentBeliefs.boxList);
+                            this.UpdateCurrentBelief(null, CurrentNode.agentList, agent.CurrentBeliefs.agentList);
+                            agent.plan = null;
                         }
                         else if (obstacle is Agent)
                         {
-                            if(agent.uid < ((Agent)obstacle).uid)
+
+                            Agent encounteredAgent = (Agent)obstacle;
+                            if (agent.uid < encounteredAgent.uid)
                             {
-                                Agent encounteredAgent = (Agent)obstacle;
-                                Agent oldAgent = agent.CurrentBeliefs.agentList[encounteredAgent.uid];
-                                agent.CurrentBeliefs.agentList.UpdatePosition(oldAgent.col, oldAgent.row, encounteredAgent.col, encounteredAgent.row);
+                                this.UpdateCurrentBelief(encounteredAgent, CurrentNode.agentList, agent.CurrentBeliefs.agentList);
+                                this.UpdateCurrentBelief(null, CurrentNode.boxList, agent.CurrentBeliefs.boxList);
                                 agent.plan = null;
                             }
                         }
+                        // always perform last. because reference is reset
                         performNoOp(agent);
 
                     }
                 }
             }
 
+        }
+
+        private void UpdateCurrentBelief<T>(T entity, EntityList<T> currentNode, EntityList<T> currentBelief) where T : IEntity
+        {
+            foreach (IEntity oldEntity in currentBelief.Entities)
+            {
+                IEntity currentEntity = currentNode[oldEntity.uid];
+                currentBelief.UpdatePosition(oldEntity.col, oldEntity.row, currentEntity.col, currentEntity.row);
+            }
+            if (entity!=null && currentBelief[entity.uid] == null)
+            {
+                currentBelief.Add(entity);
+            }
         }
 
         private static void performNoOp(Agent agent)
@@ -196,6 +211,9 @@ namespace MAClient.Classes
             foreach (Agent agent in CurrentNode.agentList.Entities)
             {
                 agent.CurrentBeliefs = CurrentNode.copyNode();
+                agent.CurrentBeliefs.boxList.Entities.Where(x => x.color != agent.color).ToList().ForEach(b=> agent.CurrentBeliefs.boxList.Remove(b.uid));
+
+                agent.CurrentBeliefs.agentList.Entities.Where(x => x.uid != agent.uid).ToList().ForEach(a => agent.CurrentBeliefs.agentList.Remove(a.uid));
                 agent.CurrentBeliefs.agentCol = agent.col;
                 agent.CurrentBeliefs.agentRow = agent.row;
 

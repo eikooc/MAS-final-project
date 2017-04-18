@@ -38,9 +38,11 @@ namespace MAClient.Classes
 						_box = box;
 					}
 				}
-
-				_box.assignGoal(goal);
-				boxList.Remove(_box);
+                if(_box != null)
+                {
+                    _box.assignGoal(goal);
+                    boxList.Remove(_box);
+                }
 			}
 		}
         /*

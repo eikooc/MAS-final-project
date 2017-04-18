@@ -2,6 +2,7 @@
 using Common.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MAClient.Classes
 {
@@ -11,16 +12,12 @@ namespace MAClient.Classes
         public int row { get; set; }
         public int uid { get; set; }
 
-
         public string color;
         public Stack<SubGoal> subgoals;
         public Node CurrentBeliefs;
         public Stack<Node> plan;
         public Strategy strategy;
 
-        //public int uid { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        //public int col { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        //public int row { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public Agent(int x, int y, int  id, string color)
         {
@@ -78,6 +75,9 @@ namespace MAClient.Classes
             if (plan.Count == 0)
             {
                 subgoals.Pop();
+
+                CurrentBeliefs.boxList.Entities.Where(x => x.color != this.color).ToList().ForEach(b => CurrentBeliefs.boxList.Remove(b.uid));
+                CurrentBeliefs.agentList.Entities.Where(x => x.uid != this.uid).ToList().ForEach(a => CurrentBeliefs.agentList.Remove(a.uid));
                 plan = null;
             }
             CurrentBeliefs = nextMove;
@@ -102,7 +102,7 @@ namespace MAClient.Classes
                 }
 
                 Node leafNode = strategy.getAndRemoveLeaf();
-                //ShowNode(leafNode, "Leaf");
+
                 if (leafNode.isSubGoalState(subGoal))
                 {
                     System.Diagnostics.Debug.WriteLine(" - SOLUTION!!!!!!");
@@ -135,25 +135,5 @@ namespace MAClient.Classes
 
             return clone;
         }
-
-
-        //public override bool Equals(Object obj)
-        //{
-
-        //    if (this == obj)
-        //        return true;
-
-        //    if (obj == null)
-        //        return false;
-
-        //    if (!(obj is Tuple))
-        //        return false;
-
-        //    Tuple other = (Tuple)obj;
-        //    if (this.x != other.x || this.y != other.y)
-        //        return false;
-
-        //    return true;
-        //}
     }
 }
