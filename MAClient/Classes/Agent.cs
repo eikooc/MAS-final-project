@@ -54,8 +54,13 @@ namespace MAClient.Classes
                         strategy.reset();
                         strategy.addToFrontier(CurrentBeliefs);
                         planList = solveSubgoal(strategy);
+                        // subgoals må kun slettes hvis de er løst. kan ikke håndtere situationer der ikkan kan solves på egen hånd
                         planList.Reverse();
                         plan = new Stack<Node>(planList);
+                        if (plan.Count == 0)
+                        {
+                            subgoals.Pop();
+                        }
                     }
                 }
                 else
@@ -69,6 +74,7 @@ namespace MAClient.Classes
             // pass on the remaining plan to agent in the next state
             if (plan.Count == 0)
             {
+                subgoals.Pop();
                 plan = null;
             }
             CurrentBeliefs = nextMove;
@@ -76,7 +82,9 @@ namespace MAClient.Classes
         }
         public void backTrack()
         {
+            plan.Push(CurrentBeliefs);
             this.CurrentBeliefs = CurrentBeliefs.parent;
+            
         }
 
         private List<Node>solveSubgoal(Strategy strategy)
@@ -94,7 +102,6 @@ namespace MAClient.Classes
                 //ShowNode(leafNode, "Leaf");
                 if (leafNode.isSubGoalState(subGoal))
                 {
-                    subgoals.Pop();
                     System.Diagnostics.Debug.WriteLine(" - SOLUTION!!!!!!");
                     return leafNode.extractPlan();
                 }

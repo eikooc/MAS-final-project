@@ -29,7 +29,7 @@ namespace MAClient.Classes
 			{
 				int minBoxDist = this.maxDist;
 				Box _box = null;
-				foreach (Box box in boxList.Values)
+				foreach (Box box in boxList.Values.Where(x=> char.ToLower(x.id) == goal.id))
 				{
 					int boxDist = Math.Abs(box.x - goal.x) + Math.Abs(box.y - goal.y);
 					if (boxDist < minBoxDist)
@@ -107,7 +107,8 @@ namespace MAClient.Classes
             {
                 Box box = n.boxList.Values.Where(x => x.uid == currentSubGoal.box.uid).FirstOrDefault();
                 int moveToDist = Math.Abs(box.x - currentSubGoal.pos.Item1) + Math.Abs(box.y -currentSubGoal.pos.Item2);
-                score += moveToDist;
+                int moveDist = Math.Abs(agent.x - box.x) + Math.Abs(agent.y - box.y);
+                score += moveToDist + moveDist;
             }
             else
             {

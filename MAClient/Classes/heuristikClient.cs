@@ -21,6 +21,7 @@ namespace MAClient.Classes
 
         public HeuristikClient()
         {
+            Debugger.Launch();
             ReadMap();
 
             // update current node to the inital state
@@ -52,8 +53,8 @@ namespace MAClient.Classes
                     // convert the node to a command
                     Command nextAction = nextMove.action;
                     // validate that the command is legal
-
-                    if (CurrentNode.ValidateAction(nextAction, agent.x, agent.y))
+                    object obstacle = CurrentNode.ValidateAction(nextAction, agent.x, agent.y);
+                    if (obstacle == null)
                     {
                         Tuple<int, int> pos = Tuple.Create(agent.x, agent.y);
                         CurrentNode = CurrentNode.ChildNode();
@@ -63,8 +64,27 @@ namespace MAClient.Classes
                     {
                         // if not, then update agents beliefs, and replan a plan for the current sub goal
                         agent.backTrack();
-                        agent.plan = null;
+                        if (obstacle is Box)
+                        {
+                            Box encounteredBox = (Box)obstacle;
+                            Box oldBox = agent.CurrentBeliefs.boxList.Values.Where(x => x.uid == encounteredBox.uid).FirstOrDefault();
+                            Node.UpdateBoxList(oldBox.x, oldBox.y, encounteredBox.x,encounteredBox.y, agent.CurrentBeliefs);
+                            agent.plan = null;
+                            // opdaterer kun en box position men ikke en players hvis den blive "handlet". Kan ikke skelne imellem en box i bevægelse og en stationær
+
+                        }
+                        else if (obstacle is Agent)
+                        {
+                            if(agent.id < ((Agent)obstacle).id)
+                            {
+                                Agent encounteredAgent = (Agent)obstacle;
+                                Agent oldAgent = agent.CurrentBeliefs.agentList.Values.Where(x => x.id == encounteredAgent.id).FirstOrDefault();
+                                Node.UpdateAgentList(oldAgent.x, oldAgent.y, encounteredAgent.x, encounteredAgent.y, agent.CurrentBeliefs);
+                                agent.plan = null;
+                            }
+                        }
                         performNoOp(agent);
+
                     }
                 }
                 /*

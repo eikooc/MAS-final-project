@@ -59,6 +59,7 @@ namespace MAClient.Classes
         {
             frontierSet.Clear();
             frontier.Clear();
+            explored.Clear();
         }
     }
 

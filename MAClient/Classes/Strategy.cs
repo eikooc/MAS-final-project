@@ -5,7 +5,7 @@ namespace MAClient.Classes
 {
 	public abstract class Strategy
 	{
-		private HashSet<Node> explored;
+		protected HashSet<Node> explored;
 		private readonly int startTime;
 
 		public Strategy()
