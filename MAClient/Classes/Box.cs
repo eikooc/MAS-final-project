@@ -1,24 +1,25 @@
-﻿using System;
+﻿using Common.Interfaces;
+using System;
 
 namespace MAClient.Classes
 {
-    public class Box
+    public class Box : IEntity
     {
-        public int x;
-        public int y;
+        public int col { get; set; }
+        public int row { get; set; }
 
         public Goal assignedGoal;
 
         public char id;
         public static int idCounter = 0;
-        public int uid;
+        public int uid { get; set; }
 
         public string color;
 
         public Box(int x, int y, char id, string color, Box parent = null)
         {
-            this.x = x;
-            this.y = y;
+            this.col = x;
+            this.row = y;
             this.id = id;
             this.color = color;
             this.uid = parent == null ? idCounter++ : parent.uid;
@@ -31,7 +32,7 @@ namespace MAClient.Classes
 
         public bool inGoal()
         {
-            return this.hasGoal() && this.x == this.assignedGoal.x && this.y == this.assignedGoal.y;
+            return this.hasGoal() && this.col == this.assignedGoal.x && this.row == this.assignedGoal.y;
         }
 
         public void assignGoal(Goal goal)
@@ -41,7 +42,7 @@ namespace MAClient.Classes
 
         public int goalDistance()
         {
-            return Math.Abs(this.x - this.assignedGoal.x) + Math.Abs(this.y - this.assignedGoal.y);
+            return Math.Abs(this.col - this.assignedGoal.x) + Math.Abs(this.row - this.assignedGoal.y);
         }
 
 
@@ -52,10 +53,9 @@ namespace MAClient.Classes
             int prime = 31;
             int result = 1;
             result = prime * result + this.uid;
-            result = prime * result + ((this.y * Node.MAX_ROW) + this.x);
+            result = prime * result + ((this.row * Node.MAX_COL) + this.col);
             return result;
         }
-
 
         public override bool Equals(Object obj)
         {
@@ -70,7 +70,15 @@ namespace MAClient.Classes
                 return false;
 
             Box other = (Box)obj;
-            return (this.x == other.x && this.y == other.y && this.uid == other.uid);
+            return (this.col == other.col && this.row == other.row && this.uid == other.uid);
         }
+
+        public IEntity Clone()
+        {
+            Box clone = new Box(this.col, this.row, this.id, this.color, this);
+            clone.assignedGoal = this.assignedGoal;
+            return clone;
+        }
+
     }
 }

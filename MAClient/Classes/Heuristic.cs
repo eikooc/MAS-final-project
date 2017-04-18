@@ -20,7 +20,7 @@ namespace MAClient.Classes
 			this.goalReward = int.MaxValue / (Node.goalList.Count + 1);
 
 			Dictionary<Box, Box> boxList = new Dictionary<Box, Box>();
-			foreach (Box box in initialState.boxList.Values)
+			foreach (Box box in initialState.boxList.Entities)
 			{
 				boxList.Add(box, box);
 			}
@@ -31,7 +31,7 @@ namespace MAClient.Classes
 				Box _box = null;
 				foreach (Box box in boxList.Values.Where(x=> char.ToLower(x.id) == goal.id))
 				{
-					int boxDist = Math.Abs(box.x - goal.x) + Math.Abs(box.y - goal.y);
+					int boxDist = Math.Abs(box.col - goal.x) + Math.Abs(box.row - goal.y);
 					if (boxDist < minBoxDist)
 					{
 						minBoxDist = boxDist;
@@ -90,7 +90,7 @@ namespace MAClient.Classes
             Agent agent = n.agentList[n.agentCol, n.agentRow];
             SubGoal currentSubGoal = agent.subgoals.Peek();
 
-            foreach (Box box in n.boxList.Values)
+            foreach (Box box in n.boxList.Entities)
             {
                 if (box.goalDistance() == 0)
                 {
@@ -104,9 +104,9 @@ namespace MAClient.Classes
             }
             else if (currentSubGoal.type == SubGoalType.MoveBoxTo)
             {
-                Box box = n.boxList.Values.Where(x => x.uid == currentSubGoal.box.uid).FirstOrDefault();
-                int moveToDist = Math.Abs(box.x - currentSubGoal.pos.Item1) + Math.Abs(box.y -currentSubGoal.pos.Item2);
-                int moveDist = Math.Abs(agent.col - box.x) + Math.Abs(agent.row - box.y);
+                Box box = n.boxList[currentSubGoal.box.uid];
+                int moveToDist = Math.Abs(box.col - currentSubGoal.pos.Item1) + Math.Abs(box.row -currentSubGoal.pos.Item2);
+                int moveDist = Math.Abs(agent.col - box.col) + Math.Abs(agent.row - box.row);
                 score += moveToDist + moveDist;
             }
             else

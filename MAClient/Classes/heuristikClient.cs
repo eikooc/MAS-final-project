@@ -67,8 +67,8 @@ namespace MAClient.Classes
                         if (obstacle is Box)
                         {
                             Box encounteredBox = (Box)obstacle;
-                            Box oldBox = agent.CurrentBeliefs.boxList.Values.Where(x => x.uid == encounteredBox.uid).FirstOrDefault();
-                            Node.UpdateBoxList(oldBox.x, oldBox.y, encounteredBox.x,encounteredBox.y, agent.CurrentBeliefs);
+                            Box oldBox = agent.CurrentBeliefs.boxList[encounteredBox.uid];
+                            Node.UpdateBoxList(oldBox.col, oldBox.row, encounteredBox.col,encounteredBox.row, agent.CurrentBeliefs);
                             agent.plan = null;
                             // opdaterer kun en box position men ikke en players hvis den blive "handlet". Kan ikke skelne imellem en box i bevægelse og en stationær
 
@@ -121,9 +121,9 @@ namespace MAClient.Classes
         public Dictionary<string, List<SubGoal>> CreateSubGoals(Node initialState)
         {
             Dictionary<string, List<SubGoal>> ColorToSubGoalDict = new Dictionary<string, List<SubGoal>>();
-            foreach(Box box in initialState.boxList.Values)
+            foreach(Box box in initialState.boxList.Entities)
             {
-                SubGoal MoveToBoxSubGoal = new SubGoal(SubGoalType.MoveAgentTo, box, Tuple.Create(box.x, box.y));
+                SubGoal MoveToBoxSubGoal = new SubGoal(SubGoalType.MoveAgentTo, box, Tuple.Create(box.col, box.row));
                 SubGoal MoveBoxToSubGoal = new SubGoal(SubGoalType.MoveBoxTo, box, Tuple.Create(box.assignedGoal.x, box.assignedGoal.y));
                 string color = colors[box.id];
                 if (!ColorToSubGoalDict.ContainsKey(color))
@@ -187,7 +187,7 @@ namespace MAClient.Classes
                     else if ('A' <= chr && chr <= 'Z')
                     { // Box.
                         Box box = new Box(x, y, chr, colors[chr]);
-                        initialState.boxList.Add(pos, box);
+                        initialState.boxList.Add(box);
 
                     }
                     else if ('a' <= chr && chr <= 'z')

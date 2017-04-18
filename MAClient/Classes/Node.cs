@@ -30,7 +30,7 @@ namespace MAClient.Classes
         //
 
 
-        public Dictionary<Tuple<int, int>, Box> boxList;
+        public EntityList<Box> boxList;
         public static Dictionary<Tuple<int, int>, Goal> goalList;
         public static Dictionary<Tuple<int, int>, bool> wallList;
         public EntityList<Agent> agentList;
@@ -51,7 +51,7 @@ namespace MAClient.Classes
 
             MAX_COL = col;
             MAX_ROW = row;
-            this.boxList = new Dictionary<Tuple<int, int>, Box>();
+            this.boxList = new EntityList<Box>(MAX_COL, MAX_ROW);
             goalList = new Dictionary<Tuple<int, int>, Goal>();
             wallList = new Dictionary<Tuple<int, int>, bool>();
             this.agentList = new EntityList<Agent>(MAX_COL,MAX_ROW);
@@ -62,7 +62,7 @@ namespace MAClient.Classes
 
         public Node(Node parent, Tuple<int,int> pos) : this(parent)
         {
-            this.boxList = new Dictionary<Tuple<int, int>, Box>();
+            this.boxList = new EntityList<Box>(MAX_COL, MAX_ROW);
             this.agentList = new EntityList<Agent>(MAX_COL,MAX_ROW);
             agentCol = pos.Item1;
             agentRow = pos.Item2;
@@ -79,7 +79,7 @@ namespace MAClient.Classes
             {
                 this._g = parent.g() + 1;
             }
-            this.boxList = new Dictionary<Tuple<int, int>, Box>();
+            this.boxList = new EntityList<Box>(MAX_COL, MAX_ROW);
             this.agentList = new EntityList< Agent>(MAX_COL,MAX_ROW);
         }
 
@@ -97,9 +97,9 @@ namespace MAClient.Classes
         {
             foreach (Goal goal in goalList.Values)
             {
-                if (boxList.ContainsKey(Tuple.Create(goal.x, goal.y)))
+                if (boxList[goal.x, goal.y] != null)
                 {
-                    if (goal.id == char.ToLower(boxList[Tuple.Create(goal.x, goal.y)].id)) continue;
+                    if (goal.id == char.ToLower(boxList[goal.x, goal.y].id)) continue;
                     else
                     {
                         return false;
@@ -117,13 +117,13 @@ namespace MAClient.Classes
         {
             if (subGoal.type == SubGoalType.MoveBoxTo)
             {
-                Box box = boxList.Values.Where(x => x.uid == subGoal.box.uid).FirstOrDefault();
+                Box box = boxList[subGoal.box.uid];
                 if(box == null)
                 {
                     throw new Exception("box uid does not exist");
                 }
 
-                if (box.x == subGoal.pos.Item1 && box.y == subGoal.pos.Item2) return true;
+                if (box.col == subGoal.pos.Item1 && box.row == subGoal.pos.Item2) return true;
             }
             else if (subGoal.type == SubGoalType.MoveAgentTo)
             {
@@ -177,11 +177,8 @@ namespace MAClient.Classes
 
                             if (b != null)
                             {
-                                b.x = newBoxCol;
-                                b.y = newBoxRow;
-
-                                n.boxList.Remove(Tuple.Create(newAgentCol, newAgentRow));
-                                n.boxList.Add(Tuple.Create(b.x, b.y), b);
+                                n.boxList.UpdatePosition(newAgentCol, newAgentRow, newBoxCol, newBoxRow);
+ 
                             }
                             expandedNodes.Add(n);
                         }
@@ -207,12 +204,7 @@ namespace MAClient.Classes
                             Box b = n.getBox(boxCol, boxRow);
                             if (b != null)
                             {
-                                n.boxList.Remove(Tuple.Create(b.x, b.y));
-
-                                b.y = this.agentRow;
-                                b.x = this.agentCol;
-
-                                n.boxList.Add(Tuple.Create(b.x, b.y), b);
+                                n.boxList.UpdatePosition(boxCol, boxRow, this.agentCol, this.agentRow);
                             }
                             expandedNodes.Add(n);
                         }
@@ -248,17 +240,17 @@ namespace MAClient.Classes
                     {
                         return agentList[newAgentCol, newAgentRow];
                     }
-                    else if (boxList.ContainsKey(pos))
+                    else if (boxList[newAgentCol, newAgentRow] != null)
                     {
-                        return boxList[pos];
+                        return boxList[newAgentCol, newAgentRow];
                     }
                     else if (parent.agentList[newAgentCol, newAgentRow] != null)
                     {
                         return parent.agentList[newAgentCol, newAgentRow];
                     }
-                    else if (parent.boxList.ContainsKey(pos))
+                    else if (parent.boxList[newAgentCol, newAgentRow] != null)
                     {
-                        return parent.boxList[pos];
+                        return parent.boxList[newAgentCol, newAgentRow];
                     }
                 }
             }
@@ -285,17 +277,17 @@ namespace MAClient.Classes
                         {
                             return agentList[newBoxCol, newBoxRow];
                         }
-                        else if (boxList.ContainsKey(pos))
+                        else if (boxList[newBoxCol, newBoxRow]!= null)
                         {
-                            return boxList[pos];
+                            return boxList[newBoxCol, newBoxRow];
                         }
                         else if (parent.agentList[newBoxCol, newBoxRow] != null)
                         {
                             return parent.agentList[newBoxCol, newBoxRow];
                         }
-                        else if (parent.boxList.ContainsKey(pos))
+                        else if (parent.boxList[newBoxCol, newBoxRow] != null)
                         {
-                            return parent.boxList[pos];
+                            return parent.boxList[newBoxCol, newBoxRow];
                         }
                     }
                 }
@@ -322,17 +314,17 @@ namespace MAClient.Classes
                     {
                         return agentList[newAgentCol, newAgentRow];
                     }
-                    else if (boxList.ContainsKey(pos))
+                    else if (boxList[newAgentCol, newAgentRow] != null)
                     {
-                        return boxList[pos];
+                        return boxList[newAgentCol, newAgentRow];
                     }
                     else if (parent.agentList[newAgentCol, newAgentRow] != null)
                     {
                         return parent.agentList[newAgentCol, newAgentRow];
                     }
-                    else if (parent.boxList.ContainsKey(pos))
+                    else if (parent.boxList[newAgentCol, newAgentRow] != null)
                     {
-                        return parent.boxList[pos];
+                        return parent.boxList[newAgentCol, newAgentRow];
                     }
                 }
             }
@@ -348,33 +340,26 @@ namespace MAClient.Classes
 
         public static void UpdateBoxList(int boxCol, int boxRow, int newBoxCol, int newBoxRow, Node n)
         {
-            Tuple<int, int> oldPos = Tuple.Create(boxCol, boxRow);
-            Box box = n.boxList[oldPos];
-            n.boxList.Remove(oldPos);
-            box.x = newBoxCol;
-            box.y = newBoxRow;
-            n.boxList.Add(Tuple.Create(newBoxCol, newBoxRow), box);
+            n.boxList.UpdatePosition(boxCol, boxRow, newBoxCol, newBoxRow);
         }
 
         private bool cellIsFree(int col, int row)
         {
             Tuple<int, int> pos = Tuple.Create(col, row);
 
-            return (!wallList.ContainsKey(pos) && !boxList.ContainsKey(pos) && agentList[col, row]==null);
+            return (!wallList.ContainsKey(pos) && boxList[col,row] == null && agentList[col, row]==null);
         }
 
         public bool boxAt(int x, int y)
         {
-            Tuple<int, int> pos = Tuple.Create(x, y);
-            return this.boxList.ContainsKey(pos);
+            return this.boxList[x,y] != null;
         }
 
         public Box getBox(int x, int y)
         {
-            Tuple<int, int> key = Tuple.Create(x, y);
-            if (boxList.ContainsKey(key))
+            if (boxList[x,y] != null)
             {
-                return boxList[key];
+                return boxList[x,y];
             }
             return null;
 
@@ -385,13 +370,8 @@ namespace MAClient.Classes
             Node copy = new Node(this);
             copy.agentCol = this.agentCol;
             copy.agentRow = this.agentRow;
-            foreach (Box box in boxList.Values)
-            {
-                Tuple<int, int> t = Tuple.Create(box.x, box.y);
-                Box newBox = new Box(box.x, box.y, box.id, box.color, box);
-                newBox.assignedGoal = box.assignedGoal;
-                copy.boxList.Add(t, newBox);
-            }
+
+            copy.boxList = this.boxList.Clone();
 
             copy.agentList = this.agentList.Clone();
 
@@ -402,13 +382,7 @@ namespace MAClient.Classes
         {
             Node copy = new Node(this.parent);
 
-            foreach (Box box in boxList.Values)
-            {
-                Tuple<int, int> t = Tuple.Create(box.x, box.y);
-                Box newBox = new Box(box.x, box.y, box.id, box.color, box);
-                newBox.assignedGoal = box.assignedGoal;
-                copy.boxList.Add(t, newBox);
-            }
+            copy.boxList = this.boxList.Clone();
 
             copy.agentList = this.agentList.Clone();
 
@@ -456,7 +430,7 @@ namespace MAClient.Classes
                 int result = 1;
                 result = prime * result + this.agentCol;
                 result = prime * result + this.agentRow;
-                int boxHash = ((IStructuralEquatable)this.boxList.Values.ToArray()).GetHashCode(EqualityComparer<Box>.Default);
+                int boxHash = ((IStructuralEquatable)this.boxList.Entities.ToArray()).GetHashCode(EqualityComparer<Box>.Default);
                 result = prime * result + boxHash;
 
                 //result = prime * result + ((IStructuralEquatable)this.goals).GetHashCode(comparer);
@@ -479,7 +453,7 @@ namespace MAClient.Classes
             Node other = (Node)obj;
             if (this.agentRow != other.agentRow || this.agentCol != other.agentCol)
                 return false;
-            if (!this.boxList.OrderBy(x => x.Key).SequenceEqual(other.boxList.OrderBy(x => x.Key)))
+            if (!this.boxList.Entities.OrderBy(x => x.uid).SequenceEqual(other.boxList.Entities.OrderBy(x => x.uid)))
                 return false;
 
             return true;
@@ -498,9 +472,9 @@ namespace MAClient.Classes
                 for (int col = 0; col < MAX_COL; col++)
                 {
                     Tuple<int, int> pos = Tuple.Create(col, row);
-                    if (boxList.ContainsKey(pos))
+                    if (boxList[col, row] != null)
                     {
-                        s.Append(boxList[pos].id);
+                        s.Append(boxList[col, row].id);
                     }
                     else if (goalList.ContainsKey(pos))
                     {
