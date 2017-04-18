@@ -15,7 +15,7 @@ namespace MAClient.Classes
         private Heuristic heuristic;
 
         Dictionary<char, string> colors;
-        Dictionary<char, Agent> agents;
+        Dictionary<int, Agent> agents;
 
         private static Node CurrentNode;
 
@@ -39,9 +39,9 @@ namespace MAClient.Classes
         private void TakeAction()
         {
             List<Node> possibleMoves = new List<Node>();
-            foreach(char agentId in agents.Keys)
+            foreach(int agentId in agents.Keys)
             {
-                Agent agent = CurrentNode.agentList.Values.Where(x => x.id == agentId).FirstOrDefault();
+                Agent agent = CurrentNode.agentList[agentId];
                 // get agents next move
                 Node nextMove = agent.getNextMove();
                 if (nextMove == null)
@@ -53,10 +53,10 @@ namespace MAClient.Classes
                     // convert the node to a command
                     Command nextAction = nextMove.action;
                     // validate that the command is legal
-                    object obstacle = CurrentNode.ValidateAction(nextAction, agent.x, agent.y);
+                    object obstacle = CurrentNode.ValidateAction(nextAction, agent.col, agent.row);
                     if (obstacle == null)
                     {
-                        Tuple<int, int> pos = Tuple.Create(agent.x, agent.y);
+                        Tuple<int, int> pos = Tuple.Create(agent.col, agent.row);
                         CurrentNode = CurrentNode.ChildNode();
                         CurrentNode.updateNode(nextMove, pos);
                     }
@@ -75,11 +75,11 @@ namespace MAClient.Classes
                         }
                         else if (obstacle is Agent)
                         {
-                            if(agent.id < ((Agent)obstacle).id)
+                            if(agent.uid < ((Agent)obstacle).uid)
                             {
                                 Agent encounteredAgent = (Agent)obstacle;
-                                Agent oldAgent = agent.CurrentBeliefs.agentList.Values.Where(x => x.id == encounteredAgent.id).FirstOrDefault();
-                                Node.UpdateAgentList(oldAgent.x, oldAgent.y, encounteredAgent.x, encounteredAgent.y, agent.CurrentBeliefs);
+                                Agent oldAgent = agent.CurrentBeliefs.agentList[encounteredAgent.uid];
+                                Node.UpdateAgentList(oldAgent.col, oldAgent.row, encounteredAgent.col, encounteredAgent.row, agent.CurrentBeliefs);
                                 agent.plan = null;
                             }
                         }
@@ -109,10 +109,10 @@ namespace MAClient.Classes
         {
             Node n = CurrentNode.copyNode();
 
-            Tuple<int, int> pos = Tuple.Create(agent.x, agent.y);
+            Tuple<int, int> pos = Tuple.Create(agent.col, agent.row);
             n.action = new Command(ActionType.NoOp);
-            n.agentCol = agent.x;
-            n.agentRow = agent.y;
+            n.agentCol = agent.col;
+            n.agentRow = agent.row;
             CurrentNode = CurrentNode.ChildNode();
             CurrentNode.updateNode(n, pos);
         }
@@ -140,7 +140,7 @@ namespace MAClient.Classes
         public void ReadMap()
         {
             colors = new Dictionary<char, string>();
-            agents = new Dictionary<char, Agent>();
+            agents = new Dictionary<int, Agent>();
             string line, color;
 
             // Read lines specifying colors
@@ -175,9 +175,10 @@ namespace MAClient.Classes
                     char chr = mapLine[x];
                     if ('0' <= chr && chr <= '9')
                     {
-                        Agent agent = new Agent(x, y, chr, colors[chr]);
-                        initialState.agentList.Add(pos, agent);
-                        agents.Add(agent.id, agent);
+                        int id = (int)chr - '0';
+                        Agent agent = new Agent(x, y, id, colors[chr]);
+                        initialState.agentList.Add(agent);
+                        agents.Add(agent.uid, agent);
                     }
                     else if (chr == '+')
                     { // Wall.
@@ -213,11 +214,11 @@ namespace MAClient.Classes
         {
 
             // update agents beliefs to the state of the inital state
-            foreach (Agent agent in CurrentNode.agentList.Values)
+            foreach (Agent agent in CurrentNode.agentList.Entities)
             {
                 agent.CurrentBeliefs = CurrentNode.copyNode();
-                agent.CurrentBeliefs.agentCol = agent.x;
-                agent.CurrentBeliefs.agentRow = agent.y;
+                agent.CurrentBeliefs.agentCol = agent.col;
+                agent.CurrentBeliefs.agentRow = agent.row;
 
 
                 agent.strategy = new StrategyBestFirst(new Greedy(agent.CurrentBeliefs));
@@ -225,7 +226,7 @@ namespace MAClient.Classes
             foreach (string color in subGoalDict.Keys)
             {
                 List<SubGoal> assignableSubGoals = subGoalDict[color];
-                List<Agent> agents = CurrentNode.agentList.Values.Where(x => x.color == color).ToList();
+                List<Agent> agents = CurrentNode.agentList.Entities.Where(x => x.color == color).ToList();
                 for (int i = 0; i< assignableSubGoals.Count; i += 2)
                 {
                     Agent agent = agents.ElementAt((i/2)%agents.Count);
@@ -255,19 +256,19 @@ namespace MAClient.Classes
 
                 List<Node> plan = CurrentNode.extractPlan();
                 int count = 0;
-                Dictionary<char, string> agentActions = new Dictionary<char, string>();
+                Dictionary<int, string> agentActions = new Dictionary<int, string>();
                 foreach (Node node in plan)
                 {
-                    agentActions.Add(node.agentList[Tuple.Create(node.agentCol, node.agentRow)].id, node.action.ToString());
+                    agentActions.Add(node.agentList[node.agentCol, node.agentRow].uid, node.action.ToString());
                     count++;
 
                     if (count % CurrentNode.agentList.Count == 0 && count != 0)
                     {
-                        List<char> list = agentActions.Keys.ToList();
+                        List<int> list = agentActions.Keys.ToList();
                         list.Sort();
                         var actions = list.Select(x => agentActions[x]);
                         MakeAction(actions.ToList());
-                        agentActions = new Dictionary<char, string>();
+                        agentActions = new Dictionary<int, string>();
                     }
 
                 }
@@ -311,7 +312,7 @@ namespace MAClient.Classes
         {
 
             string jointaction = "[";
-            var agents = CurrentNode.agentList.Values.OrderBy(x => x.id);
+            var agents = CurrentNode.agentList.Entities.OrderBy(x => x.uid);
             foreach (string command in agentActions.Take(agentActions.Count - 1))
             {
                 jointaction += command + ",";

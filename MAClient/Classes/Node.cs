@@ -33,7 +33,7 @@ namespace MAClient.Classes
         public Dictionary<Tuple<int, int>, Box> boxList;
         public static Dictionary<Tuple<int, int>, Goal> goalList;
         public static Dictionary<Tuple<int, int>, bool> wallList;
-        public Dictionary<Tuple<int, int>, Agent> agentList;
+        public EntityList<Agent> agentList;
 
         public int agentRow;
         public int agentCol;
@@ -54,7 +54,7 @@ namespace MAClient.Classes
             this.boxList = new Dictionary<Tuple<int, int>, Box>();
             goalList = new Dictionary<Tuple<int, int>, Goal>();
             wallList = new Dictionary<Tuple<int, int>, bool>();
-            this.agentList = new Dictionary<Tuple<int, int>, Agent>();
+            this.agentList = new EntityList<Agent>(MAX_COL,MAX_ROW);
 
 
 
@@ -63,7 +63,7 @@ namespace MAClient.Classes
         public Node(Node parent, Tuple<int,int> pos) : this(parent)
         {
             this.boxList = new Dictionary<Tuple<int, int>, Box>();
-            this.agentList = new Dictionary<Tuple<int, int>, Agent>();
+            this.agentList = new EntityList<Agent>(MAX_COL,MAX_ROW);
             agentCol = pos.Item1;
             agentRow = pos.Item2;
         }
@@ -80,7 +80,7 @@ namespace MAClient.Classes
                 this._g = parent.g() + 1;
             }
             this.boxList = new Dictionary<Tuple<int, int>, Box>();
-            this.agentList = new Dictionary<Tuple<int, int>, Agent>();
+            this.agentList = new EntityList< Agent>(MAX_COL,MAX_ROW);
         }
 
         public int g()
@@ -134,8 +134,7 @@ namespace MAClient.Classes
 
         public List<Node> getExpandedNodes()
         {
-            Tuple<int, int> oldPos = Tuple.Create(agentCol, agentRow);
-            Agent agent = this.agentList[oldPos];
+            Agent agent = this.agentList[agentCol, agentRow];
             List<Node> expandedNodes = new List<Node>(Command.EVERY.Length);
             foreach (Command c in Command.EVERY)
             {
@@ -229,7 +228,7 @@ namespace MAClient.Classes
         public Object ValidateAction(Command c, int agentCol, int agentRow)
         {
             Tuple<int, int> oldPos = Tuple.Create(agentCol, agentRow);
-            Agent agent = this.agentList[oldPos];
+            Agent agent = this.agentList[agentCol, agentRow];
             // Determine applicability of action
             int newAgentRow = agentRow + Command.dirToRowChange(c.dir1);
             int newAgentCol = agentCol + Command.dirToColChange(c.dir1);
@@ -245,17 +244,17 @@ namespace MAClient.Classes
                 else
                 {
                     Tuple<int, int> pos = Tuple.Create(newAgentCol, newAgentRow);
-                    if (agentList.ContainsKey(pos))
+                    if (agentList[newAgentCol, newAgentRow] != null)
                     {
-                        return agentList[pos];
+                        return agentList[newAgentCol, newAgentRow];
                     }
                     else if (boxList.ContainsKey(pos))
                     {
                         return boxList[pos];
                     }
-                    else if (parent.agentList.ContainsKey(pos))
+                    else if (parent.agentList[newAgentCol, newAgentRow] != null)
                     {
-                        return parent.agentList[pos];
+                        return parent.agentList[newAgentCol, newAgentRow];
                     }
                     else if (parent.boxList.ContainsKey(pos))
                     {
@@ -282,17 +281,17 @@ namespace MAClient.Classes
                     else
                     {
                         Tuple<int, int> pos = Tuple.Create(newBoxCol, newBoxRow);
-                        if (agentList.ContainsKey(pos))
+                        if (agentList[newBoxCol, newBoxRow]!=null)
                         {
-                            return agentList[pos];
+                            return agentList[newBoxCol, newBoxRow];
                         }
                         else if (boxList.ContainsKey(pos))
                         {
                             return boxList[pos];
                         }
-                        else if (parent.agentList.ContainsKey(pos))
+                        else if (parent.agentList[newBoxCol, newBoxRow] != null)
                         {
-                            return parent.agentList[pos];
+                            return parent.agentList[newBoxCol, newBoxRow];
                         }
                         else if (parent.boxList.ContainsKey(pos))
                         {
@@ -319,17 +318,17 @@ namespace MAClient.Classes
                 else
                 {
                     Tuple<int, int> pos = Tuple.Create(newAgentCol, newAgentRow);
-                    if (agentList.ContainsKey(pos))
+                    if (agentList[newAgentCol, newAgentRow] != null)
                     {
-                        return agentList[pos];
+                        return agentList[newAgentCol, newAgentRow];
                     }
                     else if (boxList.ContainsKey(pos))
                     {
                         return boxList[pos];
                     }
-                    else if (parent.agentList.ContainsKey(pos))
+                    else if (parent.agentList[newAgentCol, newAgentRow] != null)
                     {
-                        return parent.agentList[pos];
+                        return parent.agentList[newAgentCol, newAgentRow];
                     }
                     else if (parent.boxList.ContainsKey(pos))
                     {
@@ -344,12 +343,7 @@ namespace MAClient.Classes
 
         public static void UpdateAgentList(int agentCol, int agentRow, int newAgentCol, int newAgentRow, Node n)
         {
-            Tuple<int, int> oldPos = Tuple.Create(agentCol, agentRow);
-            Agent agent = n.agentList[oldPos];
-            n.agentList.Remove(oldPos);
-            agent.x = newAgentCol;
-            agent.y = newAgentRow;
-            n.agentList.Add(Tuple.Create(newAgentCol, newAgentRow), agent);
+            n.agentList.UpdatePosition(agentCol, agentRow, newAgentCol, newAgentRow);
         }
 
         public static void UpdateBoxList(int boxCol, int boxRow, int newBoxCol, int newBoxRow, Node n)
@@ -366,7 +360,7 @@ namespace MAClient.Classes
         {
             Tuple<int, int> pos = Tuple.Create(col, row);
 
-            return (!wallList.ContainsKey(pos) && !boxList.ContainsKey(pos) && !agentList.ContainsKey(pos));
+            return (!wallList.ContainsKey(pos) && !boxList.ContainsKey(pos) && agentList[col, row]==null);
         }
 
         public bool boxAt(int x, int y)
@@ -398,18 +392,8 @@ namespace MAClient.Classes
                 newBox.assignedGoal = box.assignedGoal;
                 copy.boxList.Add(t, newBox);
             }
-            
 
-            foreach (Agent agent in agentList.Values)
-            {
-                Tuple<int, int> t = Tuple.Create(agent.x, agent.y);
-                Agent newAgent = new Agent(agent.x, agent.y, agent.id, agent.color);
-                copy.agentList.Add(t, newAgent);
-                newAgent.subgoals = agent.subgoals;
-                newAgent.plan = agent.plan;
-                newAgent.strategy = agent.strategy;
-                newAgent.CurrentBeliefs = agent.CurrentBeliefs;
-            }
+            copy.agentList = this.agentList.Clone();
 
             return copy;
         }
@@ -425,18 +409,8 @@ namespace MAClient.Classes
                 newBox.assignedGoal = box.assignedGoal;
                 copy.boxList.Add(t, newBox);
             }
-            
 
-            foreach (Agent agent in agentList.Values)
-            {
-                Tuple<int, int> t = Tuple.Create(agent.x, agent.y);
-                Agent newAgent = new Agent(agent.x, agent.y, agent.id, agent.color);
-                copy.agentList.Add(t, newAgent);
-                newAgent.subgoals = agent.subgoals;
-                newAgent.plan = agent.plan;
-                newAgent.strategy = agent.strategy;
-                newAgent.CurrentBeliefs = agent.CurrentBeliefs;
-            }
+            copy.agentList = this.agentList.Clone();
 
             return copy;
         }
@@ -536,9 +510,9 @@ namespace MAClient.Classes
                     {
                         s.Append("+");
                     }
-                    else if (agentList.ContainsKey(pos))
+                    else if (agentList[col, row]!= null)
                     {
-                        s.Append(agentList[pos].id);
+                        s.Append(agentList[col, row].uid);
                     }
                     else
                     {

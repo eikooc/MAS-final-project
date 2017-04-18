@@ -1,15 +1,16 @@
 ﻿using Common.Classes;
+using Common.Interfaces;
 using System;
 using System.Collections.Generic;
 
 namespace MAClient.Classes
 {
-    public class Agent
+    public class Agent : IEntity
     {
-        public int x;
-        public int y;
+        public int col { get; set; }
+        public int row { get; set; }
+        public int uid { get; set; }
 
-        public char id;
 
         public string color;
         public Stack<SubGoal> subgoals;
@@ -17,13 +18,15 @@ namespace MAClient.Classes
         public Stack<Node> plan;
         public Strategy strategy;
 
-        
+        //public int uid { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        //public int col { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        //public int row { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        public Agent(int x, int y, char id, string color)
+        public Agent(int x, int y, int  id, string color)
         {
-            this.x = x;
-            this.y = y;
-            this.id = id;
+            this.col = x;
+            this.row = y;
+            this.uid = id;
             this.color = color;
             subgoals = new Stack<SubGoal>();
         }
@@ -119,7 +122,18 @@ namespace MAClient.Classes
 
         public override int GetHashCode()
         {
-            return (this.y * Node.MAX_ROW) + this.x;
+            return (this.row * Node.MAX_ROW) + this.col;
+        }
+
+        public IEntity Clone()
+        {
+            Agent clone = new Agent(this.col, this.row, this.uid, this.color);
+            clone.plan = this.plan;
+            clone.strategy = this.strategy;
+            clone.CurrentBeliefs = this.CurrentBeliefs;
+            clone.subgoals = this.subgoals;
+
+            return clone;
         }
 
 

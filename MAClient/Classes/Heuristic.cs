@@ -87,8 +87,7 @@ namespace MAClient.Classes
 
             int score = 0;
             int maxSubgoalValue = int.MinValue / (Node.goalList.Count+1);
-            Tuple<int, int> agentPos = Tuple.Create(n.agentCol, n.agentRow);
-            Agent agent = n.agentList[agentPos];
+            Agent agent = n.agentList[n.agentCol, n.agentRow];
             SubGoal currentSubGoal = agent.subgoals.Peek();
 
             foreach (Box box in n.boxList.Values)
@@ -100,14 +99,14 @@ namespace MAClient.Classes
             }
             if (currentSubGoal.type == SubGoalType.MoveAgentTo)
             {
-                int moveDist = Math.Abs(agent.x - currentSubGoal.pos.Item1) + Math.Abs(agent.y - currentSubGoal.pos.Item2);
+                int moveDist = Math.Abs(agent.col - currentSubGoal.pos.Item1) + Math.Abs(agent.row - currentSubGoal.pos.Item2);
                 score += moveDist;
             }
             else if (currentSubGoal.type == SubGoalType.MoveBoxTo)
             {
                 Box box = n.boxList.Values.Where(x => x.uid == currentSubGoal.box.uid).FirstOrDefault();
                 int moveToDist = Math.Abs(box.x - currentSubGoal.pos.Item1) + Math.Abs(box.y -currentSubGoal.pos.Item2);
-                int moveDist = Math.Abs(agent.x - box.x) + Math.Abs(agent.y - box.y);
+                int moveDist = Math.Abs(agent.col - box.x) + Math.Abs(agent.row - box.y);
                 score += moveToDist + moveDist;
             }
             else
