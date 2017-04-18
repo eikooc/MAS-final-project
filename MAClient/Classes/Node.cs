@@ -7,6 +7,7 @@ using System.Collections;
 using MAClient.Enumerations;
 using System.Diagnostics;
 using Common.Classes;
+using Common.Interfaces;
 
 namespace MAClient.Classes
 {
@@ -37,7 +38,7 @@ namespace MAClient.Classes
 
         public int agentRow;
         public int agentCol;
-        
+
 
         public Node parent;
         public Command action;
@@ -52,18 +53,18 @@ namespace MAClient.Classes
             MAX_COL = col;
             MAX_ROW = row;
             this.boxList = new EntityList<Box>(MAX_COL, MAX_ROW);
-            goalList = new EntityList<Goal>(MAX_COL,MAX_ROW);
+            goalList = new EntityList<Goal>(MAX_COL, MAX_ROW);
             wallList = new Dictionary<Tuple<int, int>, bool>();
-            this.agentList = new EntityList<Agent>(MAX_COL,MAX_ROW);
+            this.agentList = new EntityList<Agent>(MAX_COL, MAX_ROW);
 
 
 
         }
 
-        public Node(Node parent, Tuple<int,int> pos) : this(parent)
+        public Node(Node parent, Tuple<int, int> pos) : this(parent)
         {
             this.boxList = new EntityList<Box>(MAX_COL, MAX_ROW);
-            this.agentList = new EntityList<Agent>(MAX_COL,MAX_ROW);
+            this.agentList = new EntityList<Agent>(MAX_COL, MAX_ROW);
             agentCol = pos.Item1;
             agentRow = pos.Item2;
         }
@@ -80,7 +81,7 @@ namespace MAClient.Classes
                 this._g = parent.g() + 1;
             }
             this.boxList = new EntityList<Box>(MAX_COL, MAX_ROW);
-            this.agentList = new EntityList< Agent>(MAX_COL,MAX_ROW);
+            this.agentList = new EntityList<Agent>(MAX_COL, MAX_ROW);
         }
 
         public int g()
@@ -118,7 +119,7 @@ namespace MAClient.Classes
             if (subGoal.type == SubGoalType.MoveBoxTo)
             {
                 Box box = boxList[subGoal.box.uid];
-                if(box == null)
+                if (box == null)
                 {
                     throw new Exception("box uid does not exist");
                 }
@@ -148,7 +149,7 @@ namespace MAClient.Classes
                     if (this.cellIsFree(newAgentCol, newAgentRow))
                     { // O(m)
                         Node n = this.ChildNode(); // gl: O(n),  ny: O(m), 
-                        UpdateAgentList(agentCol, agentRow, newAgentCol, newAgentRow, n);
+                        n.agentList.UpdatePosition(agentCol, agentRow, newAgentCol, newAgentRow);
                         n.action = c;
                         n.agentCol = newAgentCol;
                         n.agentRow = newAgentRow;
@@ -169,7 +170,7 @@ namespace MAClient.Classes
                         if (this.cellIsFree(newBoxCol, newBoxRow))
                         {
                             Node n = this.ChildNode();
-                            UpdateAgentList(agentCol, agentRow, newAgentCol, newAgentRow, n);
+                            n.agentList.UpdatePosition(agentCol, agentRow, newAgentCol, newAgentRow);
                             n.action = c;
                             n.agentCol = newAgentCol;
                             n.agentRow = newAgentRow;
@@ -178,7 +179,7 @@ namespace MAClient.Classes
                             if (b != null)
                             {
                                 n.boxList.UpdatePosition(newAgentCol, newAgentRow, newBoxCol, newBoxRow);
- 
+
                             }
                             expandedNodes.Add(n);
                         }
@@ -196,7 +197,7 @@ namespace MAClient.Classes
                         if (this.boxAt(boxCol, boxRow) && bb.color == agent.color)
                         {
                             Node n = this.ChildNode();
-                            UpdateAgentList(agentCol, agentRow, newAgentCol, newAgentRow, n);
+                            n.agentList.UpdatePosition(agentCol, agentRow, newAgentCol, newAgentRow);
 
                             n.action = c;
                             n.agentRow = newAgentRow;
@@ -217,151 +218,108 @@ namespace MAClient.Classes
             return expandedNodes.OrderBy(item => RND.Next()).ToList();
         }
 
-        public Object ValidateAction(Command c, int agentCol, int agentRow)
+        public IEntity ValidateAction(Command c, int agentCol, int agentRow)
         {
-            Tuple<int, int> oldPos = Tuple.Create(agentCol, agentRow);
             Agent agent = this.agentList[agentCol, agentRow];
             // Determine applicability of action
             int newAgentRow = agentRow + Command.dirToRowChange(c.dir1);
             int newAgentCol = agentCol + Command.dirToColChange(c.dir1);
 
+            int col = -1;
+            int row = -1;
+
             if (c.actionType == ActionType.Move)
             {
                 // Check if there's a wall or box on the cell to which the agent is moving
-                bool? b = parent?.cellIsFree(newAgentCol, newAgentRow);
-                if (this.cellIsFree(newAgentCol, newAgentRow) && (b.HasValue && b.Value || !b.HasValue))
-                {
-                    return null;
-                }
-                else
-                {
-                    Tuple<int, int> pos = Tuple.Create(newAgentCol, newAgentRow);
-                    if (agentList[newAgentCol, newAgentRow] != null)
-                    {
-                        return agentList[newAgentCol, newAgentRow];
-                    }
-                    else if (boxList[newAgentCol, newAgentRow] != null)
-                    {
-                        return boxList[newAgentCol, newAgentRow];
-                    }
-                    else if (parent.agentList[newAgentCol, newAgentRow] != null)
-                    {
-                        return parent.agentList[newAgentCol, newAgentRow];
-                    }
-                    else if (parent.boxList[newAgentCol, newAgentRow] != null)
-                    {
-                        return parent.boxList[newAgentCol, newAgentRow];
-                    }
-                }
+                col = newAgentCol;
+                row = newAgentRow;
             }
             else if (c.actionType == ActionType.Push)
             {
-
-                //Debugger.Launch();
                 // Make sure that there's actually a box to move
-                Box bb = getBox(newAgentCol, newAgentRow);
-                if (this.boxAt(newAgentCol, newAgentRow) && bb.color == agent.color)
+                Box box = getBox(newAgentCol, newAgentRow);
+                if (box != null && box.color == agent.color)
                 {
-                    int newBoxRow = newAgentRow + Command.dirToRowChange(c.dir2.Value);
-                    int newBoxCol = newAgentCol + Command.dirToColChange(c.dir2.Value);
-                    // .. and that new cell of box is free
-                    bool? b = parent?.cellIsFree(newBoxCol, newBoxRow);
-                    if (this.cellIsFree(newBoxCol, newBoxRow) && (b.HasValue && b.Value || !b.HasValue))
-                    {
-                        return null;
-                    }
-                    else
-                    {
-                        Tuple<int, int> pos = Tuple.Create(newBoxCol, newBoxRow);
-                        if (agentList[newBoxCol, newBoxRow]!=null)
-                        {
-                            return agentList[newBoxCol, newBoxRow];
-                        }
-                        else if (boxList[newBoxCol, newBoxRow]!= null)
-                        {
-                            return boxList[newBoxCol, newBoxRow];
-                        }
-                        else if (parent.agentList[newBoxCol, newBoxRow] != null)
-                        {
-                            return parent.agentList[newBoxCol, newBoxRow];
-                        }
-                        else if (parent.boxList[newBoxCol, newBoxRow] != null)
-                        {
-                            return parent.boxList[newBoxCol, newBoxRow];
-                        }
-                    }
+                    col = newAgentCol + Command.dirToColChange(c.dir2.Value);
+                    row = newAgentRow + Command.dirToRowChange(c.dir2.Value);
+                }
+                else
+                {
+                    // box is no longer at expected position
+                    int boxUid = agent.CurrentBeliefs.parent.boxList[newAgentCol, newAgentRow].uid;
+                    return boxList[boxUid];
                 }
             }
             else if (c.actionType == ActionType.Pull)
             {
-                // Cell is free where agent is going
-                bool? b = parent?.cellIsFree(newAgentCol, newAgentRow);
-                if (this.cellIsFree(newAgentCol, newAgentRow) && (b.HasValue && b.Value || !b.HasValue))
+                // Cell is free where agent is going and there's a box in "dir2" of the agent
+                int boxRow = agentRow + Command.dirToRowChange(c.dir2.Value);
+                int boxCol = agentCol + Command.dirToColChange(c.dir2.Value);
+                Box box = getBox(boxCol, boxRow);
+                if (box != null && box.color == agent.color)
                 {
-                    int boxRow = agentRow + Command.dirToRowChange(c.dir2.Value);
-                    int boxCol = agentCol + Command.dirToColChange(c.dir2.Value);
-                    // .. and there's a box in "dir2" of the agent
-                    Box bb = getBox(boxCol, boxRow);
-                    if (this.boxAt(boxCol, boxRow) && bb.color == agent.color)
-                    {
-                        return null;
-                    }
+                    col = newAgentCol;
+                    row = newAgentRow;
                 }
                 else
                 {
-                    Tuple<int, int> pos = Tuple.Create(newAgentCol, newAgentRow);
-                    if (agentList[newAgentCol, newAgentRow] != null)
-                    {
-                        return agentList[newAgentCol, newAgentRow];
-                    }
-                    else if (boxList[newAgentCol, newAgentRow] != null)
-                    {
-                        return boxList[newAgentCol, newAgentRow];
-                    }
-                    else if (parent.agentList[newAgentCol, newAgentRow] != null)
-                    {
-                        return parent.agentList[newAgentCol, newAgentRow];
-                    }
-                    else if (parent.boxList[newAgentCol, newAgentRow] != null)
-                    {
-                        return parent.boxList[newAgentCol, newAgentRow];
-                    }
+                    // box is no longer at expected position
+                    int boxUid = agent.CurrentBeliefs.parent.boxList[boxCol, boxRow].uid;
+                    return boxList[boxUid];
                 }
+
             }
+
+            if (col > -1 && row > -1)
+            {
+                bool? b = parent?.cellIsFree(col, row);
+                bool valid = (this.cellIsFree(col, row) && (b.HasValue && b.Value || !b.HasValue));
+                return valid ? null : this.GetEntityAt(col, row);
+            }
+
             // not a valid action. return false.
             throw new Exception("could not validate action, but no agent or box found.");
-            
+
         }
 
-        public static void UpdateAgentList(int agentCol, int agentRow, int newAgentCol, int newAgentRow, Node n)
+        private IEntity GetEntityAt(int col, int row)
         {
-            n.agentList.UpdatePosition(agentCol, agentRow, newAgentCol, newAgentRow);
+            if (this.agentList[col, row] != null)
+            {
+                return this.agentList[col, row];
+            }
+            else if (this.boxList[col, row] != null)
+            {
+                return this.boxList[col, row];
+            }
+            else if (this.parent.agentList[col, row] != null)
+            {
+                return this.parent.agentList[col, row];
+            }
+            else if (this.parent.boxList[col, row] != null)
+            {
+                return this.parent.boxList[col, row];
+            }
+
+            return null;
         }
 
-        public static void UpdateBoxList(int boxCol, int boxRow, int newBoxCol, int newBoxRow, Node n)
-        {
-            n.boxList.UpdatePosition(boxCol, boxRow, newBoxCol, newBoxRow);
-        }
 
         private bool cellIsFree(int col, int row)
         {
             Tuple<int, int> pos = Tuple.Create(col, row);
 
-            return (!wallList.ContainsKey(pos) && boxList[col,row] == null && agentList[col, row]==null);
+            return (!wallList.ContainsKey(pos) && boxList[col, row] == null && agentList[col, row] == null);
         }
 
         public bool boxAt(int x, int y)
         {
-            return this.boxList[x,y] != null;
+            return this.boxList[x, y] != null;
         }
 
         public Box getBox(int x, int y)
         {
-            if (boxList[x,y] != null)
-            {
-                return boxList[x,y];
-            }
-            return null;
+            return boxList[x, y];
 
         }
 
@@ -389,9 +347,9 @@ namespace MAClient.Classes
             return copy;
         }
 
-        public void updateNode(Node otherNode,Tuple<int,int> oldAgentPos)
+        public void updateNode(Node otherNode, int oldCol, int oldRow)
         {
-            UpdateAgentList(oldAgentPos.Item1, oldAgentPos.Item2, otherNode.agentCol, otherNode.agentRow, this);
+            this.agentList.UpdatePosition(oldCol, oldRow, otherNode.agentCol, otherNode.agentRow);
             this.action = otherNode.action;
             this.agentCol = otherNode.agentCol;
             this.agentRow = otherNode.agentRow;
@@ -399,13 +357,13 @@ namespace MAClient.Classes
             {
                 int deltaBoxX = Command.dirToColChange(otherNode.action.dir2.Value);
                 int deltaBoxY = Command.dirToRowChange(otherNode.action.dir2.Value);
-                UpdateBoxList(oldAgentPos.Item1 + deltaBoxX, oldAgentPos.Item2 + deltaBoxY, oldAgentPos.Item1, oldAgentPos.Item2, this);
+                this.boxList.UpdatePosition(oldCol + deltaBoxX, oldRow + deltaBoxY, oldCol, oldRow);
             }
             else if (otherNode.action.actionType == ActionType.Push)
             {
                 int deltaBoxX = Command.dirToColChange(otherNode.action.dir2.Value);
                 int deltaBoxY = Command.dirToRowChange(otherNode.action.dir2.Value);
-                UpdateBoxList(otherNode.agentCol, otherNode.agentRow, otherNode.agentCol + deltaBoxX, otherNode.agentRow + deltaBoxY, this);
+                this.boxList.UpdatePosition(otherNode.agentCol, otherNode.agentRow, otherNode.agentCol + deltaBoxX, otherNode.agentRow + deltaBoxY);
             }
         }
 
@@ -476,7 +434,7 @@ namespace MAClient.Classes
                     {
                         s.Append(boxList[col, row].id);
                     }
-                    else if (goalList[col, row]!= null)
+                    else if (goalList[col, row] != null)
                     {
                         s.Append(goalList[col, row].id);
                     }
@@ -484,7 +442,7 @@ namespace MAClient.Classes
                     {
                         s.Append("+");
                     }
-                    else if (agentList[col, row]!= null)
+                    else if (agentList[col, row] != null)
                     {
                         s.Append(agentList[col, row].uid);
                     }

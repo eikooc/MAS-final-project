@@ -1,4 +1,5 @@
 ﻿using Common.Classes;
+using Common.Interfaces;
 using MAClient.Enumerations;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ namespace MAClient.Classes
         private Heuristic heuristic;
 
         Dictionary<char, string> colors;
-        Dictionary<int, Agent> agents;
+        List<int> agentIds;
 
         private static Node CurrentNode;
 
@@ -39,7 +40,7 @@ namespace MAClient.Classes
         private void TakeAction()
         {
             List<Node> possibleMoves = new List<Node>();
-            foreach(int agentId in agents.Keys)
+            foreach(int agentId in agentIds)
             {
                 Agent agent = CurrentNode.agentList[agentId];
                 // get agents next move
@@ -53,12 +54,11 @@ namespace MAClient.Classes
                     // convert the node to a command
                     Command nextAction = nextMove.action;
                     // validate that the command is legal
-                    object obstacle = CurrentNode.ValidateAction(nextAction, agent.col, agent.row);
+                    IEntity obstacle = CurrentNode.ValidateAction(nextAction, agent.col, agent.row);
                     if (obstacle == null)
                     {
-                        Tuple<int, int> pos = Tuple.Create(agent.col, agent.row);
                         CurrentNode = CurrentNode.ChildNode();
-                        CurrentNode.updateNode(nextMove, pos);
+                        CurrentNode.updateNode(nextMove, agent.col, agent.row);
                     }
                     else
                     {
@@ -68,7 +68,7 @@ namespace MAClient.Classes
                         {
                             Box encounteredBox = (Box)obstacle;
                             Box oldBox = agent.CurrentBeliefs.boxList[encounteredBox.uid];
-                            Node.UpdateBoxList(oldBox.col, oldBox.row, encounteredBox.col,encounteredBox.row, agent.CurrentBeliefs);
+                            agent.CurrentBeliefs.boxList.UpdatePosition(oldBox.col, oldBox.row, encounteredBox.col, encounteredBox.row);
                             agent.plan = null;
                             // opdaterer kun en box position men ikke en players hvis den blive "handlet". Kan ikke skelne imellem en box i bevægelse og en stationær
 
@@ -79,7 +79,7 @@ namespace MAClient.Classes
                             {
                                 Agent encounteredAgent = (Agent)obstacle;
                                 Agent oldAgent = agent.CurrentBeliefs.agentList[encounteredAgent.uid];
-                                Node.UpdateAgentList(oldAgent.col, oldAgent.row, encounteredAgent.col, encounteredAgent.row, agent.CurrentBeliefs);
+                                agent.CurrentBeliefs.agentList.UpdatePosition(oldAgent.col, oldAgent.row, encounteredAgent.col, encounteredAgent.row);
                                 agent.plan = null;
                             }
                         }
@@ -87,20 +87,6 @@ namespace MAClient.Classes
 
                     }
                 }
-                /*
-                possibleMoves = CurrentNode.getExpandedNodes(agent.x, agent.y);
-                foreach (Node node in possibleMoves)
-                {
-                    int val = heuristic.h(node);
-                    if (max > val)
-                    {
-                        max = val;
-                        //Debugger.Launch();
-                        bestNode = node;
-                    }
-                }
-                CurrentNode = bestNode;
-                */
             }
 
         }
@@ -108,13 +94,11 @@ namespace MAClient.Classes
         private static void performNoOp(Agent agent)
         {
             Node n = CurrentNode.copyNode();
-
-            Tuple<int, int> pos = Tuple.Create(agent.col, agent.row);
             n.action = new Command(ActionType.NoOp);
             n.agentCol = agent.col;
             n.agentRow = agent.row;
             CurrentNode = CurrentNode.ChildNode();
-            CurrentNode.updateNode(n, pos);
+            CurrentNode.updateNode(n, agent.col, agent.row);
         }
 
         // intitate subgoals based on boxes and goals in game
@@ -140,7 +124,7 @@ namespace MAClient.Classes
         public void ReadMap()
         {
             colors = new Dictionary<char, string>();
-            agents = new Dictionary<int, Agent>();
+            agentIds = new List<int>();
             string line, color;
 
             // Read lines specifying colors
@@ -168,32 +152,27 @@ namespace MAClient.Classes
             // Read lines specifying level layout
             foreach (string mapLine in lines)
             {
-
                 for (int x = 0; x < mapLine.Length; x++)
                 {
-                    Tuple<int, int> pos = Tuple.Create(x, y);
                     char chr = mapLine[x];
                     if ('0' <= chr && chr <= '9')
                     {
                         int id = (int)chr - '0';
                         Agent agent = new Agent(x, y, id, colors[chr]);
                         initialState.agentList.Add(agent);
-                        agents.Add(agent.uid, agent);
+                        this.agentIds.Add(agent.uid);
                     }
                     else if (chr == '+')
                     { // Wall.
-                        Node.wallList.Add(pos, true);
+                        Node.wallList.Add(Tuple.Create(x, y), true);
                     }
                     else if ('A' <= chr && chr <= 'Z')
                     { // Box.
-                        Box box = new Box(x, y, chr, colors[chr]);
-                        initialState.boxList.Add(box);
-
+                        initialState.boxList.Add(new Box(x, y, chr, colors[chr]));
                     }
                     else if ('a' <= chr && chr <= 'z')
                     { // Goal.
-                        Goal goal = new Goal(x, y, chr);
-                        Node.goalList.Add(goal);
+                        Node.goalList.Add(new Goal(x, y, chr));
                     }
                     else if (chr == ' ')
                     {
@@ -282,31 +261,6 @@ namespace MAClient.Classes
             return true;
         }
 
-
-        //public bool SendActions()
-        //{
-        //    string jointaction = "[";
-        //    for (int i = 0; i < agents.count - 1; i++)
-        //    {
-        //        jointaction += agents[i].act() + ",";
-        //    }
-
-        //    jointaction += agents[agents.count - 1].act() + "]";
-
-        //    // place message in buffer
-        //    console.out.writeline(jointaction);
-
-        //    // flush buffer
-        //    console.out.flush();
-        //    // disregard these for now, but read or the server stalls when its output buffer gets filled!
-        //    string percepts = console.in.readline();
-        //    if (percepts == null)
-        //    {
-        //        return false;
-        //    }
-
-        //    return true;
-        //}
 
         public bool MakeAction(List<string> agentActions)
         {
