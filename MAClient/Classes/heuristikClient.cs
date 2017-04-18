@@ -124,7 +124,7 @@ namespace MAClient.Classes
             foreach(Box box in initialState.boxList.Entities)
             {
                 SubGoal MoveToBoxSubGoal = new SubGoal(SubGoalType.MoveAgentTo, box, Tuple.Create(box.col, box.row));
-                SubGoal MoveBoxToSubGoal = new SubGoal(SubGoalType.MoveBoxTo, box, Tuple.Create(box.assignedGoal.x, box.assignedGoal.y));
+                SubGoal MoveBoxToSubGoal = new SubGoal(SubGoalType.MoveBoxTo, box, Tuple.Create(box.assignedGoal.col, box.assignedGoal.row));
                 string color = colors[box.id];
                 if (!ColorToSubGoalDict.ContainsKey(color))
                 {
@@ -193,7 +193,7 @@ namespace MAClient.Classes
                     else if ('a' <= chr && chr <= 'z')
                     { // Goal.
                         Goal goal = new Goal(x, y, chr);
-                        Node.goalList.Add(pos, goal);
+                        Node.goalList.Add(goal);
                     }
                     else if (chr == ' ')
                     {

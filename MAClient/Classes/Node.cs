@@ -31,7 +31,7 @@ namespace MAClient.Classes
 
 
         public EntityList<Box> boxList;
-        public static Dictionary<Tuple<int, int>, Goal> goalList;
+        public static EntityList<Goal> goalList;
         public static Dictionary<Tuple<int, int>, bool> wallList;
         public EntityList<Agent> agentList;
 
@@ -52,7 +52,7 @@ namespace MAClient.Classes
             MAX_COL = col;
             MAX_ROW = row;
             this.boxList = new EntityList<Box>(MAX_COL, MAX_ROW);
-            goalList = new Dictionary<Tuple<int, int>, Goal>();
+            goalList = new EntityList<Goal>(MAX_COL,MAX_ROW);
             wallList = new Dictionary<Tuple<int, int>, bool>();
             this.agentList = new EntityList<Agent>(MAX_COL,MAX_ROW);
 
@@ -95,11 +95,11 @@ namespace MAClient.Classes
 
         public bool isGoalState()
         {
-            foreach (Goal goal in goalList.Values)
+            foreach (Goal goal in goalList.Entities)
             {
-                if (boxList[goal.x, goal.y] != null)
+                if (boxList[goal.col, goal.row] != null)
                 {
-                    if (goal.id == char.ToLower(boxList[goal.x, goal.y].id)) continue;
+                    if (goal.id == char.ToLower(boxList[goal.col, goal.row].id)) continue;
                     else
                     {
                         return false;
@@ -476,9 +476,9 @@ namespace MAClient.Classes
                     {
                         s.Append(boxList[col, row].id);
                     }
-                    else if (goalList.ContainsKey(pos))
+                    else if (goalList[col, row]!= null)
                     {
-                        s.Append(goalList[pos].id);
+                        s.Append(goalList[col, row].id);
                     }
                     else if (wallList.ContainsKey(pos))
                     {

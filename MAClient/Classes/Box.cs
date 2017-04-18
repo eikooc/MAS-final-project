@@ -32,7 +32,7 @@ namespace MAClient.Classes
 
         public bool inGoal()
         {
-            return this.hasGoal() && this.col == this.assignedGoal.x && this.row == this.assignedGoal.y;
+            return this.hasGoal() && this.col == this.assignedGoal.col && this.row == this.assignedGoal.row;
         }
 
         public void assignGoal(Goal goal)
@@ -42,7 +42,7 @@ namespace MAClient.Classes
 
         public int goalDistance()
         {
-            return Math.Abs(this.col - this.assignedGoal.x) + Math.Abs(this.row - this.assignedGoal.y);
+            return Math.Abs(this.col - this.assignedGoal.col) + Math.Abs(this.row - this.assignedGoal.row);
         }
 
 

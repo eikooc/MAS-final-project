@@ -25,13 +25,13 @@ namespace MAClient.Classes
 				boxList.Add(box, box);
 			}
 			/// Find the closest box for the respective goal
-			foreach (Goal goal in Node.goalList.Values)
+			foreach (Goal goal in Node.goalList.Entities)
 			{
 				int minBoxDist = this.maxDist;
 				Box _box = null;
 				foreach (Box box in boxList.Values.Where(x=> char.ToLower(x.id) == goal.id))
 				{
-					int boxDist = Math.Abs(box.col - goal.x) + Math.Abs(box.row - goal.y);
+					int boxDist = Math.Abs(box.col - goal.col) + Math.Abs(box.row - goal.row);
 					if (boxDist < minBoxDist)
 					{
 						minBoxDist = boxDist;
