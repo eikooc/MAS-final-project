@@ -45,21 +45,28 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes\Agent.cs" />
-    <Compile Include="Classes\Box.cs" />
+    <Compile Include="Classes\Entities\Agent.cs" />
+    <Compile Include="Classes\Entities\Box.cs" />
     <Compile Include="Classes\Command.cs" />
-    <Compile Include="Classes\Goal.cs" />
+    <Compile Include="Classes\DistanceMap.cs" />
+    <Compile Include="Classes\Entities\Position.cs" />
+    <Compile Include="Classes\Entities\Goal.cs" />
+    <Compile Include="Classes\Goals\MoveAgentTo.cs" />
+    <Compile Include="Classes\Goals\WaitFor.cs" />
+    <Compile Include="Classes\Goals\MoveAway.cs" />
+    <Compile Include="Classes\Goals\MoveBoxTo.cs" />
     <Compile Include="Classes\Greedy.cs" />
     <Compile Include="Classes\Heuristic.cs" />
-    <Compile Include="Classes\heuristikClient.cs" />
-    <Compile Include="Classes\Memory.cs" />
+    <Compile Include="Classes\Plan.cs" />
+    <Compile Include="Classes\SearchClient.cs" />
     <Compile Include="Classes\Node.cs" />
     <Compile Include="Classes\Strategy.cs" />
     <Compile Include="Classes\StrategyBestFirst.cs" />
-    <Compile Include="Classes\SubGoal.cs" />
+    <Compile Include="Classes\Goals\SubGoal.cs" />
     <Compile Include="Enumerations\SubGoalType.cs" />
     <Compile Include="Enumerations\Dir.cs" />
     <Compile Include="Enumerations\ActionType.cs" />
+    <Compile Include="Interfaces\ISubGoal.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

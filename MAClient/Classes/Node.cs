@@ -8,43 +8,28 @@ using MAClient.Enumerations;
 using System.Diagnostics;
 using Common.Classes;
 using Common.Interfaces;
+using MAClient.Classes.Entities;
 
 namespace MAClient.Classes
 {
     public class Node
     {
         private static readonly Random RND = new Random(1); // if you don't want the same seed every time: System.Environment.TickCount()
-
         public static int MAX_ROW;
         public static int MAX_COL;
-
         public int fitness;
         public bool hasFitness = false;
-        // Arrays are indexed from the top-left of the level, with first index being row and second being column.
-        // Row 0: (0,0) (0,1) (0,2) (0,3) ...
-        // Row 1: (1,0) (1,1) (1,2) (1,3) ...
-        // Row 2: (2,0) (2,1) (2,2) (2,3) ...
-        // ...
-        // (Start in the top left corner, first go down, then go right)
-        // E.g. this.walls[2] is an array of booleans having size MAX_COL.
-        // this.walls[row][col] is true if there's a wall at (row, col)
-        //
-
-
         public EntityList<Box> boxList;
         public static EntityList<Goal> goalList;
-        public static Dictionary<Tuple<int, int>, bool> wallList;
+        public static EntityList<Position> wallList;
         public EntityList<Agent> agentList;
 
         public int agentRow;
         public int agentCol;
 
-
         public Node parent;
         public Command action;
-
         private int _g;
-
         private int _hash = 0;
 
         public Node(Node parent, int row, int col) : this(parent)
@@ -54,11 +39,8 @@ namespace MAClient.Classes
             MAX_ROW = row;
             this.boxList = new EntityList<Box>(MAX_COL, MAX_ROW);
             goalList = new EntityList<Goal>(MAX_COL, MAX_ROW);
-            wallList = new Dictionary<Tuple<int, int>, bool>();
+            wallList = new EntityList<Position>(MAX_COL, MAX_ROW);
             this.agentList = new EntityList<Agent>(MAX_COL, MAX_ROW);
-
-
-
         }
 
         public Node(Node parent, Tuple<int, int> pos) : this(parent)
@@ -105,25 +87,6 @@ namespace MAClient.Classes
                 }
             }
             return true;
-        }
-
-        public bool isSubGoalState(SubGoal subGoal)
-        {
-            if (subGoal.type == SubGoalType.MoveBoxTo)
-            {
-                Box box = boxList[subGoal.box.uid];
-                if (box == null)
-                {
-                    throw new Exception("box uid does not exist");
-                }
-
-                return (box.col == subGoal.pos.Item1 && box.row == subGoal.pos.Item2);
-            }
-            else if (subGoal.type == SubGoalType.MoveAgentTo)
-            {
-                return ((Math.Abs(agentCol - subGoal.pos.Item1) + Math.Abs(agentRow - subGoal.pos.Item2)) == 1);
-            }
-            return false;
         }
 
         public List<Node> getExpandedNodes()
@@ -177,7 +140,7 @@ namespace MAClient.Classes
                     // .. and there's a box in "dir2" of the agent
                     Box bb = getBox(boxCol, boxRow);
                     if (this.boxAt(boxCol, boxRow) && bb.color == agent.color)
-                    { 
+                    {
                         // Cell is free where agent is going
                         if (this.cellIsFree(newAgentCol, newAgentRow))
                         {
@@ -192,7 +155,7 @@ namespace MAClient.Classes
                     }
                 }
             }
-            
+
             return expandedNodes.OrderBy(item => RND.Next()).ToList();
         }
 
@@ -220,7 +183,6 @@ namespace MAClient.Classes
                     break;
 
                 case ActionType.Pull:
-                    // Cell is free where agent is going and there's a box in "dir2" of the agent
                     int boxRow = agentRow + Command.dirToRowChange(c.dir2.Value);
                     int boxCol = agentCol + Command.dirToColChange(c.dir2.Value);
 
@@ -232,9 +194,18 @@ namespace MAClient.Classes
 
             if (canValidate)
             {
-                bool? b = parent?.cellIsFree(col, row);
-                bool valid = (this.cellIsFree(col, row) && (b.HasValue && b.Value || !b.HasValue));
-                return valid ? null : this.GetEntityAt(col, row);
+                Node ancestor = this.FindAncestor(this.agentList.Count-1);
+                bool ancestorFree = ancestor.cellIsFree(col, row);
+                bool currentNodeFree = this.cellIsFree(col, row);
+                if(!currentNodeFree)
+                {
+                    return this.GetEntityAt(col, row);                    
+                }
+                else if(!ancestorFree)
+                {
+                    return ancestor.GetEntityAt(col, row);
+                }
+                return null;
             }
             // box is no longer at expected position
             else
@@ -245,6 +216,17 @@ namespace MAClient.Classes
 
             // not a valid action. return false.
             throw new Exception("could not validate action, but no agent or box found.");
+        }
+
+        private Node FindAncestor(int level)
+        {
+            Node n = this;
+            for (int cnt = 0; cnt < level; cnt++)
+            {
+                if (n.parent == null) break;
+                n = n.parent;
+            }
+            return n;
         }
 
         bool HasExpectedBox(int col, int row, string color)
@@ -263,24 +245,21 @@ namespace MAClient.Classes
             {
                 return this.boxList[col, row];
             }
-            else if (this.parent.agentList[col, row] != null)
-            {
-                return this.parent.agentList[col, row];
-            }
-            else if (this.parent.boxList[col, row] != null)
-            {
-                return this.parent.boxList[col, row];
-            }
+            //else if (this.parent.agentList[col, row] != null)
+            //{
+            //    return this.parent.agentList[col, row];
+            //}
+            //else if (this.parent.boxList[col, row] != null)
+            //{
+            //    return this.parent.boxList[col, row];
+            //}
 
             return null;
         }
 
-
         private bool cellIsFree(int col, int row)
         {
-            Tuple<int, int> pos = Tuple.Create(col, row);
-
-            return (!wallList.ContainsKey(pos) && boxList[col, row] == null && agentList[col, row] == null);
+            return (wallList[col, row] == null && boxList[col, row] == null && (agentList[col, row] == null)); //|| (agentCol == col && agentRow == row && agentList[agentCol,agentRow].uid == agentList[col, row].uid)
         }
 
         public bool boxAt(int x, int y)
@@ -332,16 +311,9 @@ namespace MAClient.Classes
             }
         }
 
-        public List<Node> extractPlan()
+        public Plan extractPlan()
         {
-            List<Node> plan = new List<Node>();
-            Node n = this;
-            while (!n.isInitialState())
-            {
-                plan.Insert(0, n);
-                n = n.parent;
-            }
-            return plan;
+            return new Plan(this);
         }
 
 
@@ -361,10 +333,8 @@ namespace MAClient.Classes
             return this._hash;
         }
 
-
         public override bool Equals(Object obj)
         {
-
             if (this == obj)
                 return true;
             if (obj == null)
@@ -380,19 +350,17 @@ namespace MAClient.Classes
             return true;
         }
 
-
         public override string ToString()
         {
             StringBuilder s = new StringBuilder();
             for (int row = 0; row < MAX_ROW; row++)
             {
-                if (!wallList.ContainsKey(Tuple.Create(0, row)))
+                if (wallList[0, row] == null )
                 {
                     break;
                 }
                 for (int col = 0; col < MAX_COL; col++)
                 {
-                    Tuple<int, int> pos = Tuple.Create(col, row);
                     if (boxList[col, row] != null)
                     {
                         s.Append(boxList[col, row].id);
@@ -401,7 +369,7 @@ namespace MAClient.Classes
                     {
                         s.Append(goalList[col, row].id);
                     }
-                    else if (wallList.ContainsKey(pos))
+                    else if (wallList[col, row]!= null)
                     {
                         s.Append("+");
                     }

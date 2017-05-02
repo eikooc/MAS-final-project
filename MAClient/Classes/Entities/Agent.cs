@@ -1,10 +1,9 @@
-﻿using Common.Classes;
-using Common.Interfaces;
-using System;
+﻿using Common.Interfaces;
+using MAClient.Enumerations;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MAClient.Classes
+namespace MAClient.Classes.Entities
 {
     public class Agent : IEntity
     {
@@ -15,11 +14,11 @@ namespace MAClient.Classes
         public string color;
         public Stack<SubGoal> subgoals;
         public Node CurrentBeliefs;
-        public Stack<Node> plan;
+        public Plan plan;
         public Strategy strategy;
 
 
-        public Agent(int x, int y, int  id, string color)
+        public Agent(int x, int y, int id, string color)
         {
             this.col = x;
             this.row = y;
@@ -32,34 +31,53 @@ namespace MAClient.Classes
         {
             // NOT DONE
             strategy = new StrategyBestFirst(new Greedy(CurrentBeliefs));
-            while(subgoals.Count != 0)
+            while (subgoals.Count != 0)
             {
-                if(plan == null)
+                if (plan == null)
                 {
-                    plan = new Stack<Node>(solveSubgoal(strategy));
+                    plan = CreatePlan(strategy);
                 }
             }
+        }
+
+        public bool IsWaiting()
+        {
+            if (this.subgoals.Count > 0)
+            {
+                SubGoal currentSubgoal = this.subgoals.Peek();
+                if (currentSubgoal.type == SubGoalType.WaitFor)
+                {
+                    return !currentSubgoal.IsSolved(null);
+                }
+                return false;
+            }
+            return true;
         }
 
         public Node getNextMove()
         {
             if (plan == null)
             {
-                if(subgoals.Count != 0)
+                if (subgoals.Count != 0)
                 {
-                    List<Node> planList = new List<Node>();
-                    while (planList.Count == 0)
+                    plan = CreatePlan(strategy);
+                    while (plan == null || plan.Completed)
                     {
-                        CurrentBeliefs.parent = null;
-                        strategy.reset();
-                        strategy.addToFrontier(CurrentBeliefs);
-                        planList = solveSubgoal(strategy);
-                        // subgoals må kun slettes hvis de er løst. kan ikke håndtere situationer der ikkan kan solves på egen hånd
-                        planList.Reverse();
-                        plan = new Stack<Node>(planList);
-                        if (plan.Count == 0)
+                        if (plan == null)
+                        {
+                            return null;
+                        }
+                        if (plan.Completed)
                         {
                             subgoals.Pop();
+                            if(subgoals.Count != 0)
+                            {
+                                plan = CreatePlan(strategy);
+                            }
+                            else
+                            {
+                                return null;
+                            }
                         }
                     }
                 }
@@ -68,34 +86,51 @@ namespace MAClient.Classes
                     return null;
                 }
             }
-            
-            Node nextMove = plan.Pop();
+
+            Node nextMove = plan.GetNextAction();
 
             // pass on the remaining plan to agent in the next state
-            if (plan.Count == 0)
-            {
-                subgoals.Pop();
+            CurrentBeliefs = nextMove;
+            return nextMove;
+        }
 
+        public void acceptNextMove()
+        {
+            if (plan.Completed)
+            {
+                this.SolveSubgoal();
                 CurrentBeliefs.boxList.Entities.Where(x => x.color != this.color).ToList().ForEach(b => CurrentBeliefs.boxList.Remove(b.uid));
                 CurrentBeliefs.agentList.Entities.Where(x => x.uid != this.uid).ToList().ForEach(a => CurrentBeliefs.agentList.Remove(a.uid));
                 plan = null;
             }
-            CurrentBeliefs = nextMove;
-            return nextMove;
-        }
-        public void backTrack()
-        {
-            plan.Push(CurrentBeliefs);
-            this.CurrentBeliefs = CurrentBeliefs.parent;
-            
         }
 
-        private List<Node>solveSubgoal(Strategy strategy)
+        public void SolveSubgoal()
         {
+            SubGoal subgoal = subgoals.Pop();
+            subgoal.completed = true;
+        }
+
+        public void backTrack()
+        {
+            plan.UndoAction(this.CurrentBeliefs);
+            this.CurrentBeliefs = this.CurrentBeliefs.parent;
+        }
+
+        public void ReplanWithSubGoal(SubGoal subGoal)
+        {
+            this.subgoals.Push(subGoal);
+            this.plan = this.CreatePlan(this.strategy);
+        }
+
+        public Plan CreatePlan(Strategy strategy)
+        {
+            CurrentBeliefs.parent = null;
+            strategy.reset();
+            strategy.addToFrontier(CurrentBeliefs);
             SubGoal subGoal = subgoals.Peek();
             while (true)
             {
-
                 if (strategy.frontierIsEmpty())
                 {
                     return null;
@@ -103,7 +138,7 @@ namespace MAClient.Classes
 
                 Node leafNode = strategy.getAndRemoveLeaf();
 
-                if (leafNode.isSubGoalState(subGoal))
+                if (subGoal.IsSolved(leafNode))
                 {
                     System.Diagnostics.Debug.WriteLine(" - SOLUTION!!!!!!");
                     return leafNode.extractPlan();

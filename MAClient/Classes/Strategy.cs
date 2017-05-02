@@ -29,11 +29,6 @@ namespace MAClient.Classes
 			return this.explored.Count;
 		}
 
-		public string searchStatus()
-		{
-			return string.Format("#Explored: {0}, #Frontier: {1}, #Generated: {2}, Time: {3} s \t{4}", this.countExplored(), this.countFrontier(), this.countExplored() + this.countFrontier(), this.timeSpent(), Memory.stringRep());
-		}
-
 		public float timeSpent()
 		{
 			return (System.Environment.TickCount - this.startTime) / 1000f;

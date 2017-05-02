@@ -1,11 +1,11 @@
-﻿using MAClient.Enumerations;
+﻿using MAClient.Classes.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace MAClient.Classes
 {
-	public abstract class Heuristic : System.Collections.Generic.IComparer<Node>
+    public abstract class Heuristic : System.Collections.Generic.IComparer<Node>
 	{
 		public int maxDist;
 		public int goalReward;
@@ -45,44 +45,6 @@ namespace MAClient.Classes
                 }
 			}
 		}
-        /*
-		public int h(Node n)
-		{
-			int score = 0;
-            foreach (Agent agent in n.agentList.Values)
-            {
-                int closestProblemDist = this.maxDist;
-                int closestProblemGoalDist = 0;
-                foreach (Box box in n.boxList.Values.Where(x=> x.color == agent.color))
-                {
-                    if (!box.hasGoal())
-                        continue;
-
-                    //if the box already in goal then reward it
-                    if (box.inGoal())
-                    {
-                        score -= this.goalReward;
-                    }
-                    else
-                    {
-
-                        int moveDist = Math.Abs(agent.x - box.x) + Math.Abs(agent.y - box.y);
-
-                        if (moveDist < closestProblemDist)
-                        {
-                            closestProblemDist = moveDist;
-                            closestProblemGoalDist = box.goalDistance();
-                        }
-                    }
-                }
-
-                // yield score for the goal/box closest to the agent
-                score += closestProblemGoalDist + closestProblemDist;
-
-            }
-            return score;
-		}
-        */
 
         public int h(Node n)
         {
@@ -99,24 +61,8 @@ namespace MAClient.Classes
                     score -= 1;
                 }
             }
-            if (currentSubGoal.type == SubGoalType.MoveAgentTo)
-            {
-                int moveDist = Math.Abs(agent.col - currentSubGoal.pos.Item1) + Math.Abs(agent.row - currentSubGoal.pos.Item2);
-                score += moveDist;
-            }
-            else if (currentSubGoal.type == SubGoalType.MoveBoxTo)
-            {
-                Box box = n.boxList[currentSubGoal.box.uid];
-                int moveToDist = Math.Abs(box.col - currentSubGoal.pos.Item1) + Math.Abs(box.row -currentSubGoal.pos.Item2);
-                int moveDist = Math.Abs(agent.col - box.col) + Math.Abs(agent.row - box.row);
-                score += moveToDist + moveDist;
-            }
-            else
-            {
-                throw new  InvalidOperationException("subGoal must have a type");
-            }
-
-        return score;
+            score += currentSubGoal.heuristicScore(n);
+            return score;
         }
 
         public abstract int f(Node n);

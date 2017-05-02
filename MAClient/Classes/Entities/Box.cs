@@ -1,7 +1,7 @@
 ﻿using Common.Interfaces;
 using System;
 
-namespace MAClient.Classes
+namespace MAClient.Classes.Entities
 {
     public class Box : IEntity
     {

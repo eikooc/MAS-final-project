@@ -15,7 +15,7 @@ namespace MAClient
             System.Diagnostics.Debug.WriteLine("Hello from Heuristik with a k. I am sending this using the error outputstream");
             try
             {
-                HeuristikClient client = new HeuristikClient();
+                SearchClient client = new SearchClient();
                 client.Run();
             }
             catch (Exception e)

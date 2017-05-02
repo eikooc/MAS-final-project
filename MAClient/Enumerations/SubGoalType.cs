@@ -3,6 +3,10 @@ namespace MAClient.Enumerations
 {
 	public enum SubGoalType
 	{
-		MoveBoxTo, MoveAgentTo
-	}
+		MoveBoxTo,
+        MoveAgentTo,
+        MoveAgentAway,
+        MoveBoxAway,
+        WaitFor
+    }
 }
