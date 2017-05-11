@@ -57,24 +57,43 @@ namespace MAClient.Classes
                 // agent plan is hindered by obstacle
                 if (obstacle is Box)
                 {
-                    Box encBox = (Box)obstacle;
-                    // find nearest agent that can help and nearest spot to store obstacle
-                    Agent samaritan = null;
-
-                    MoveBoxTo moveBoxTo = new MoveBoxTo(encBox, null);
-                    MoveAgentTo moveAgentTo = new MoveAgentTo(encBox);
-                    samaritan.subgoals.Push(moveBoxTo);
-                    samaritan.subgoals.Push(moveAgentTo);
-                    samaritan.plan = null;
+                   /* Box box = ((Box)obstacle);
+                    foreach (Agent samaritan in CurrentNode.agentList.Entities.Where(x => x.color == box.color))
+                    {
+                        MoveAway moveAgentAway = new MoveAway(new IEntity[] { box, samaritan }, usedFields);
+                        if (!samaritan.subgoals.Any(x => x.Equals(moveAgentAway)))
+                        {
+                            MoveAgentTo moveAgentTo = new MoveAgentTo(box, samaritan.uid);
+                            WaitFor waitForCompletion = new WaitFor(agent.subgoals.Peek(), samaritan.uid);
+                            samaritan.subgoals.Push(waitForCompletion);
+                            samaritan.subgoals.Push(moveAgentAway);
+                            samaritan.ReplanWithSubGoal(moveAgentTo);
+                            samaritan.plan = null;
+                            agent.subgoals.Push(new WaitFor(moveAgentAway, samaritan.uid));
+                            performNoOp(agent);
+                        }
+                        else
+                        {
+                            ResolveConflict(agent, obstacle);
+                        }
+                    }*/
                 }
                 else if (obstacle is Agent)
                 {
                     Agent samaritan = (Agent)obstacle;
-                    MoveAway moveAgentAway = new MoveAway(samaritan, usedFields);
-                    WaitFor waitForCompletion = new WaitFor(agent.subgoals.Peek());
-                    this.UpdateCurrentBelief(agent, CurrentNode.agentList, samaritan.CurrentBeliefs.agentList);
-                    samaritan.subgoals.Push(waitForCompletion);
-                    samaritan.ReplanWithSubGoal(moveAgentAway);
+                    MoveAway moveAgentAway = new MoveAway(samaritan , usedFields);
+                    if (!samaritan.subgoals.Any(x => x.Equals(moveAgentAway)))
+                    {
+                        WaitFor waitForCompletion = new WaitFor(agent.subgoals.Peek());
+                        this.UpdateCurrentBelief(agent, CurrentNode.agentList, samaritan.CurrentBeliefs.agentList);
+                        samaritan.subgoals.Push(waitForCompletion);
+                        samaritan.ReplanWithSubGoal(moveAgentAway);
+                        agent.subgoals.Push(new WaitFor(moveAgentAway));
+                    }
+                    else
+                    {
+                        ResolveConflict(agent, obstacle);
+                    }
                 }
             }
             performNoOp(agent);

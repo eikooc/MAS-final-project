@@ -47,7 +47,12 @@ namespace MAClient.Classes.Entities
                 SubGoal currentSubgoal = this.subgoals.Peek();
                 if (currentSubgoal.type == SubGoalType.WaitFor)
                 {
-                    return !currentSubgoal.IsSolved(null);
+                    if(currentSubgoal.IsSolved(null))
+                    {
+                        SolveSubgoal();
+                        return false;
+                    }
+                    return true;
                 }
                 return false;
             }
@@ -69,7 +74,7 @@ namespace MAClient.Classes.Entities
                         }
                         if (plan.Completed)
                         {
-                            subgoals.Pop();
+                            SolveSubgoal();
                             if(subgoals.Count != 0)
                             {
                                 plan = CreatePlan(strategy);
@@ -110,6 +115,7 @@ namespace MAClient.Classes.Entities
             SubGoal subgoal = subgoals.Pop();
             subgoal.completed = true;
         }
+
 
         public void backTrack()
         {
