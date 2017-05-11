@@ -52,6 +52,7 @@
     <Compile Include="Classes\Entities\Position.cs" />
     <Compile Include="Classes\Entities\Goal.cs" />
     <Compile Include="Classes\Goals\MoveAgentTo.cs" />
+    <Compile Include="Classes\Goals\Objective.cs" />
     <Compile Include="Classes\Goals\WaitFor.cs" />
     <Compile Include="Classes\Goals\MoveAway.cs" />
     <Compile Include="Classes\Goals\MoveBoxTo.cs" />

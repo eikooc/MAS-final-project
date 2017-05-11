@@ -190,6 +190,9 @@ namespace MAClient.Classes
                     col = canValidate ? newAgentCol : boxCol;
                     row = canValidate ? newAgentRow : boxRow;
                     break;
+                case ActionType.NoOp:
+                    //All is fine and dandy
+                    return null;
             }
 
             if (canValidate)

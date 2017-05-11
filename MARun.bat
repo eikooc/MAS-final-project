@@ -1,1 +1,1 @@
-java -jar server.jar -l levels/MASimple2.lvl -c "MAClient\\bin\\Debug\\MAClient.exe" -g
+java -jar server.jar -l levels/helpMe2.lvl -c "MAClient\\bin\\Debug\\MAClient.exe" -g

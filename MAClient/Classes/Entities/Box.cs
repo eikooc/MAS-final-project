@@ -42,6 +42,7 @@ namespace MAClient.Classes.Entities
 
         public int goalDistance()
         {
+            if(!this.hasGoal()) return -1;
             return Math.Abs(this.col - this.assignedGoal.col) + Math.Abs(this.row - this.assignedGoal.row);
         }
 
@@ -57,9 +58,8 @@ namespace MAClient.Classes.Entities
             return result;
         }
 
-        public override bool Equals(Object obj)
+        public override bool Equals(object obj)
         {
-
             if (this == obj)
                 return true;
 

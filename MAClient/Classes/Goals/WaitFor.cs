@@ -9,12 +9,12 @@ namespace MAClient.Classes.Goals
     {
         public SubGoal dependency;
 
-        public WaitFor(SubGoal dependency) : base(SubGoalType.WaitFor)
+        public WaitFor(SubGoal dependency, int owner) : base(owner)
         {
             this.dependency = dependency;
         }
 
-        public override bool IsSolved(Node n)
+        public override bool IsGoalState(Node n)
         {
             return dependency.completed;
         }
@@ -22,5 +22,6 @@ namespace MAClient.Classes.Goals
         {
             return 0;
         }
+
     }
 }
