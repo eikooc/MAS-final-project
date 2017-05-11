@@ -52,7 +52,7 @@ namespace MAClient.Classes
             int score = 0;
             int maxSubgoalValue = int.MinValue / (Node.goalList.Count+1);
             Agent agent = n.agentList[n.agentCol, n.agentRow];
-            SubGoal currentSubGoal = agent.subgoals.Peek();
+            SubGoal currentSubGoal = agent.CurrentSubgoal;
 
             foreach (Box box in n.boxList.Entities)
             {

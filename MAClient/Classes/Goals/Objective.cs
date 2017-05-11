@@ -9,24 +9,24 @@ namespace MAClient.Classes.Goals
     public class Objective
     {
         private Stack<SubGoal> subgoals;
-        public bool Completed { get; private set; }
-        public SubGoal Current { get; private set; }
-        public Plan Plan { get; private set; }
+        private Plan Plan { get; set; }
+        private Strategy strategy;
 
+        public SubGoal Current { get; private set; }
         public SubGoal ContingentOn { get; private set; }
         public List<Agent> samaritans;
-
-        private Strategy strategy;
+        public bool HasPlan { get { return Plan != null; } }
+        public bool PlanCompleted { get { return this.HasPlan && this.Plan.Completed; } }
+        public bool IsComplete { get { return this.subgoals.Count == 0 && Current.completed; } }
+        public bool Failed { get { return Current == null || Current.failed; } }
 
         public Objective(Strategy strategy)
         {
             this.subgoals = new Stack<SubGoal>();
             this.samaritans = new List<Agent>();
-            this.Completed = false;
             this.strategy = strategy;
         }
 
-        public bool IsComplete { get { return this.subgoals.Count == 0; } }
 
         public void AddSubGoal(SubGoal subGoal)
         {
@@ -44,9 +44,37 @@ namespace MAClient.Classes.Goals
                 this.subgoals.Peek().UpdateState(n);
                 if (this.subgoals.Peek().completed)
                 {
-                   this.Current = subgoals.Pop();
+                    this.Current = subgoals.Pop();
                 }
             }
+        }
+
+        public void UndoAction(Node n)
+        {
+            this.Plan.UndoAction(n);
+        }
+        public bool acceptNextMove()
+        {
+            if (Plan.Completed)
+            {
+                this.SolveSubgoal();
+                this.Current = subgoals.Pop();
+                Plan = null;
+                return true;
+            }
+
+            return false;
+        }
+
+        private void SolveSubgoal()
+        {
+            SubGoal subgoal = subgoals.Pop();
+            subgoal.completed = true;
+        }
+
+        public void AddEncounteredObject(IEntity obstacle)
+        {
+            this.Current.EncounteredObjects.Push(obstacle);
         }
 
         public Node GetNextMove(Agent agent, Node n)
@@ -55,22 +83,28 @@ namespace MAClient.Classes.Goals
             {
                 if (!((WaitFor)Current).completed)
                 {
-                    return this.PerformNoOp(agent, n);
+                    return PerformNoOp(agent, n);
                 }
-                else if (((WaitFor)Current).dependency.failed)
+                else if (((WaitFor)Current).dependency.Failed)
                 {
-                    ResolveConflict(agent, n);
-                    return this.PerformNoOp(agent, n);
+                    return ResolveConflict(agent, n);
                 }
-                else if (this.subgoals.Count > 1)
+            }
+
+            if (Current == null || Current.completed)
+            {
+                if (this.subgoals.Count > 1)
                 {
                     this.Current = this.subgoals.Pop();
-                    this.Plan = this.CreatePlan(this.strategy, agent.CurrentBeliefs);
+                    this.CreatePlan(this.strategy, agent.CurrentBeliefs);
+                    if (!this.HasPlan)
+                    {
+                        return ResolveConflict(agent, n);
+                    }
                 }
                 else
                 {
-                    this.Completed = true;
-                    return null;
+                    return PerformNoOp(agent, n);
                 }
             }
             return Plan.GetNextAction();
@@ -78,10 +112,10 @@ namespace MAClient.Classes.Goals
 
         public Node ResolveConflict(Agent agent, Node n)
         {
-            if (agent.encounteredObjects.Count != 0)
+            if (this.Current.EncounteredObjects.Count != 0)
             {
-                object obstacle = agent.encounteredObjects.Pop();
-                List<IEntity> usedFields = agent.plan.ExtractUsedFields();
+                object obstacle = this.Current.EncounteredObjects.Pop();
+                List<IEntity> usedFields = this.Plan.ExtractUsedFields();
 
                 if (obstacle != null)
                 {
@@ -96,7 +130,7 @@ namespace MAClient.Classes.Goals
                             Objective objective = this.CreateMoveAway(box, agent, samaritan);
                             if (samaritan.AcceptObjective(objective))
                             {
-                                agent.subgoals.Push(new WaitFor(objective.ContingentOn, samaritan.uid));
+                                this.AddSubGoal(new WaitFor(objective, samaritan.uid));
                                 this.samaritans.Add(samaritan);
                                 solved = true;
                                 break;
@@ -113,20 +147,23 @@ namespace MAClient.Classes.Goals
                         Objective objective = this.CreateMoveAway(agent, samaritan);
                         if (samaritan.AcceptObjective(objective))
                         {
-                            agent.subgoals.Push(new WaitFor(objective.ContingentOn, samaritan.uid));
+                            this.AddSubGoal(new WaitFor(objective, samaritan.uid));
                         }
                         else
                         {
                             return ResolveConflict(agent, n);
                         }
                     }
-
                 }
             }
-            return this.PerformNoOp(agent, n);
+            else
+            {
+                Current.failed = true;
+            }
+            return PerformNoOp(agent, n);
         }
 
-        public Plan CreatePlan(Strategy strategy, Node CurrentBelief)
+        public void CreatePlan(Strategy strategy, Node CurrentBelief)
         {
             CurrentBelief.parent = null;
             strategy.reset();
@@ -136,14 +173,14 @@ namespace MAClient.Classes.Goals
             {
                 if (strategy.frontierIsEmpty())
                 {
-                    return null;
+                    this.Plan = null;
                 }
 
                 Node leafNode = strategy.getAndRemoveLeaf();
                 if (this.Current.IsGoalState(leafNode))
                 {
                     System.Diagnostics.Debug.WriteLine(" - SOLUTION!!!!!!");
-                    return leafNode.extractPlan();
+                    this.Plan = leafNode.extractPlan();
                 }
 
                 strategy.addToExplored(leafNode);
@@ -156,7 +193,8 @@ namespace MAClient.Classes.Goals
                 }
             }
         }
-        public Node PerformNoOp(Agent agent, Node currentNode)
+
+        public static Node PerformNoOp(Agent agent, Node currentNode)
         {
             Node n = currentNode.copyNode();
             n.action = new Command(ActionType.NoOp);
@@ -170,35 +208,28 @@ namespace MAClient.Classes.Goals
             return null;
         }
 
-        private void AddContingentOn(SubGoal subgoal)
-        {
-            this.ContingentOn = subgoal;
-            this.AddSubGoal(subgoal);
-        }
-
-        private Objective CreateMoveAway(Box box, Agent agent, Agent samaritan)
+        public Objective CreateMoveAway(Box box, Agent agent, Agent samaritan)
         {
             Objective objective = new Objective(this.strategy);
 
-            List<IEntity> usedFields = agent.plan.ExtractUsedFields();
+            List<IEntity> usedFields = this.Plan.ExtractUsedFields();
             MoveAway moveAgentAway = new MoveAway(new IEntity[] { box, samaritan }, usedFields, agent.uid, samaritan.uid);
             MoveAgentTo moveAgentTo = new MoveAgentTo(box, samaritan.uid);
-            WaitFor waitForCompletion = new WaitFor(agent.subgoals.Peek(), samaritan.uid);
+            WaitFor waitForCompletion = new WaitFor(this, samaritan.uid);
             objective.AddSubGoal(waitForCompletion);
-            objective.AddContingentOn(moveAgentAway);
+            objective.AddSubGoal(moveAgentAway);
             objective.AddSubGoal(moveAgentTo);
             return objective;
         }
 
-        private Objective CreateMoveAway(Agent agent, Agent samaritan)
+        public Objective CreateMoveAway(Agent agent, Agent samaritan)
         {
             Objective objective = new Objective(this.strategy);
-            List<IEntity> usedFields = agent.plan.ExtractUsedFields();
+            List<IEntity> usedFields = this.Plan.ExtractUsedFields();
             MoveAway moveAgentAway = new MoveAway(new IEntity[] { samaritan }, usedFields, agent.uid, samaritan.uid);
-            WaitFor waitForCompletion = new WaitFor(agent.subgoals.Peek(), samaritan.uid);
+            WaitFor waitForCompletion = new WaitFor(this, samaritan.uid);
             objective.AddSubGoal(waitForCompletion);
             objective.AddSubGoal(moveAgentAway);
-            objective.AddContingentOn(moveAgentAway);
             return objective;
         }
 

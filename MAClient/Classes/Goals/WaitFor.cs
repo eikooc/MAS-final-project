@@ -7,16 +7,16 @@ namespace MAClient.Classes.Goals
 {
     public class WaitFor : SubGoal
     {
-        public SubGoal dependency;
+        public Objective dependency;
 
-        public WaitFor(SubGoal dependency, int owner) : base(owner)
+        public WaitFor(Objective dependency, int owner) : base(owner)
         {
             this.dependency = dependency;
         }
 
         public override bool IsGoalState(Node n)
         {
-            return dependency.completed;
+            return dependency.IsComplete;
         }
         public override int heuristicScore(Node n)
         {
