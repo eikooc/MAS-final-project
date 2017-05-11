@@ -1,13 +1,10 @@
 ﻿using Common.Classes;
-using Common.Interfaces;
 using MAClient.Classes.Entities;
 using MAClient.Classes.Goals;
-using MAClient.Enumerations;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 
 namespace MAClient.Classes
 {
@@ -16,238 +13,46 @@ namespace MAClient.Classes
         private Node initialState;
         private Dictionary<string, List<SubGoal>> subGoalDict;
         private Heuristic heuristic;
-
-        Dictionary<char, string> colors;
-        List<int> agentIds;
-
+        private Dictionary<char, string> colors;
+        private List<int> agentIds;
         private static Node CurrentNode;
 
         public SearchClient()
         {
             Debugger.Launch();
-            ReadMap();
+            this.ReadMap();
 
             // update current node to the inital state
-            CurrentNode = initialState;
-
+            CurrentNode = this.initialState;
             // intital heuristic on the basis of the read map
-            heuristic = new Greedy(initialState);
+            this.heuristic = new Greedy(initialState);
             // create the inital subgoals on the basis of the read map
-            subGoalDict = CreateSubGoals(initialState);
+            this.subGoalDict = this.CreateSubGoals(initialState);
             // assigne goals to agents
-            assignGoals();
+            this.AssignGoals();
         }
-        
-
-        private void TakeAction()
-        {
-            List<Node> possibleMoves = new List<Node>();
-            foreach(int agentId in agentIds)
-            {
-                Agent agent = CurrentNode.agentList[agentId];
-                ProcessAgentAction(agent);
-            }
-
-        }
-        private void ResolveConflict(Agent agent, IEntity obstacle)
-        {
-            if (obstacle != null)
-            {
-                List<IEntity> usedFields = agent.plan.ExtractUsedFields();
-                // agent plan is hindered by obstacle
-                if (obstacle is Box)
-                {
-                   /* Box box = ((Box)obstacle);
-                    foreach (Agent samaritan in CurrentNode.agentList.Entities.Where(x => x.color == box.color))
-                    {
-                        MoveAway moveAgentAway = new MoveAway(new IEntity[] { box, samaritan }, usedFields);
-                        if (!samaritan.subgoals.Any(x => x.Equals(moveAgentAway)))
-                        {
-                            MoveAgentTo moveAgentTo = new MoveAgentTo(box, samaritan.uid);
-                            WaitFor waitForCompletion = new WaitFor(agent.subgoals.Peek(), samaritan.uid);
-                            samaritan.subgoals.Push(waitForCompletion);
-                            samaritan.subgoals.Push(moveAgentAway);
-                            samaritan.ReplanWithSubGoal(moveAgentTo);
-                            samaritan.plan = null;
-                            agent.subgoals.Push(new WaitFor(moveAgentAway, samaritan.uid));
-                            performNoOp(agent);
-                        }
-                        else
-                        {
-                            ResolveConflict(agent, obstacle);
-                        }
-                    }*/
-                }
-                else if (obstacle is Agent)
-                {
-                    Agent samaritan = (Agent)obstacle;
-                    MoveAway moveAgentAway = new MoveAway(samaritan , usedFields);
-                    if (!samaritan.subgoals.Any(x => x.Equals(moveAgentAway)))
-                    {
-                        WaitFor waitForCompletion = new WaitFor(agent.subgoals.Peek());
-                        this.UpdateCurrentBelief(agent, CurrentNode.agentList, samaritan.CurrentBeliefs.agentList);
-                        samaritan.subgoals.Push(waitForCompletion);
-                        samaritan.ReplanWithSubGoal(moveAgentAway);
-                        agent.subgoals.Push(new WaitFor(moveAgentAway));
-                    }
-                    else
-                    {
-                        ResolveConflict(agent, obstacle);
-                    }
-                }
-            }
-            performNoOp(agent);
-        }
-        private void ProcessAgentAction(Agent agent)
-        {
-            if (agent.IsWaiting())
-            {
-                performNoOp(agent);
-            }
-            else
-            {
-                // get agents next move
-                Node nextMove = agent.getNextMove();
-                if (nextMove == null)
-                {
-                    if (agent.IsWaiting())
-                    {
-                        // agent is done with subgoals, perform noOp
-                        performNoOp(agent);
-                    }
-                }
-                else // if (nextMove != null)
-                {
-                    // convert the node to a command
-                    Command nextAction = nextMove.action;
-                    // validate that the command is legal
-                    IEntity obstacle = CurrentNode.ValidateAction(nextAction, agent.col, agent.row);
-                    if (obstacle == null)
-                    {
-                        // succesfull move
-                        agent.acceptNextMove();
-                        CurrentNode = CurrentNode.ChildNode();
-                        CurrentNode.updateNode(nextMove, agent.col, agent.row);
-                    }
-                    else
-                    {
-                        // if not, then update agents beliefs, and replan a plan for the current sub goal
-                        agent.backTrack();
-                        if (obstacle is Box)
-                        {
-                            // opdaterer kun en box position men ikke en players hvis den blive "handlet". Kan ikke skelne imellem en box i bevægelse og en stationær
-                            this.UpdateCurrentBelief(obstacle, CurrentNode.boxList, agent.CurrentBeliefs.boxList);
-                            this.UpdateCurrentBelief(null, CurrentNode.agentList, agent.CurrentBeliefs.agentList);
-                            this.TryConflictResolve(agent, obstacle);
-                        }
-                        else if (obstacle is Agent)
-                        {
-                            Agent otherAgent = (Agent)obstacle;
-                            Agent perceivedAgent = otherAgent.CurrentBeliefs.agentList[agent.uid];
-                            if (perceivedAgent != null && perceivedAgent.col == agent.col && perceivedAgent.row == agent.row)
-                            {
-                                performNoOp(agent);
-                            }
-                            else
-                            {
-                                this.UpdateCurrentBelief(obstacle, CurrentNode.agentList, agent.CurrentBeliefs.agentList);
-                                this.UpdateCurrentBelief(null, CurrentNode.boxList, agent.CurrentBeliefs.boxList);
-                                this.TryConflictResolve(agent, obstacle);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        private static void findSpotAndSamaritan(IEntity encounteredObstacle, HashSet<Tuple<int, int>> usedFields, string color, ref Tuple<int, int> freeSpot, ref Agent samaritan)
-        {
-            DistanceMap dm = new DistanceMap(encounteredObstacle.col, encounteredObstacle.row, CurrentNode);
-            while (samaritan == null || freeSpot == null)
-            {
-                dm.Expand();
-                if (samaritan == null)
-                {
-                    foreach (IEntity entity in dm.getEntities())
-                    {
-                        if (entity is Agent && ((Agent)entity).color == color)
-                        {
-                            samaritan = (Agent)entity;
-                            break;
-                        }
-                    }
-                }
-                if (freeSpot == null)
-                {
-                    foreach (Tuple<int, int> spot in dm.frontier)
-                    {
-                        if (!usedFields.Contains(spot))
-                        {
-                            freeSpot = spot;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        private void UpdateCurrentBelief<T>(IEntity entity, EntityList<T> currentNode, EntityList<T> currentBelief) where T : IEntity
-        {
-            foreach (IEntity oldEntity in currentBelief.Entities)
-            {
-                IEntity currentEntity = currentNode[oldEntity.uid];
-                currentBelief.UpdatePosition(oldEntity.col, oldEntity.row, currentEntity.col, currentEntity.row);
-            }
-            if (entity!=null && currentBelief[entity.uid] == null)
-            {
-                currentBelief.Add((T)entity);
-            }
-        }
-
-        private void TryConflictResolve(Agent agent, IEntity obstacle)
-        {
-            Plan plan = agent.CreatePlan(agent.strategy);
-            if (plan == null)
-            {
-                ResolveConflict(agent, obstacle);
-            }
-            else
-            {
-                agent.plan = plan;
-                performNoOp(agent);
-            }
-        }
-
-        private static void performNoOp(Agent agent)
-        {
-            Node n = CurrentNode.copyNode();
-            n.action = new Command(ActionType.NoOp);
-            n.agentCol = agent.col;
-            n.agentRow = agent.row;
-            CurrentNode = CurrentNode.ChildNode();
-            CurrentNode.updateNode(n, agent.col, agent.row);
-        }
-
-        // intitate subgoals based on boxes and goals in game
         public Dictionary<string, List<SubGoal>> CreateSubGoals(Node initialState)
         {
             Dictionary<string, List<SubGoal>> ColorToSubGoalDict = new Dictionary<string, List<SubGoal>>();
-            foreach(Box box in initialState.boxList.Entities)
+            // loop throug goals to create sub goals, if goal does not have a corresponding box then it will not work.
+            foreach (Box box in initialState.boxList.Entities)
             {
-                MoveAgentTo MoveToBoxSubGoal = new MoveAgentTo(box);
-                MoveBoxTo MoveBoxToSubGoal = new MoveBoxTo(box, new Position(box.assignedGoal.col, box.assignedGoal.row));
-                string color = colors[box.id];
-                if (!ColorToSubGoalDict.ContainsKey(color))
+                if (box.assignedGoal != null)
                 {
-                    ColorToSubGoalDict.Add(color, new List<SubGoal>());
+                    MoveAgentTo MoveToBoxSubGoal = new MoveAgentTo(box, -1);
+                    MoveBoxTo MoveBoxToSubGoal = new MoveBoxTo(box, new Position(box.assignedGoal.col, box.assignedGoal.row), -1);
+                    string color = colors[box.id];
+                    if (!ColorToSubGoalDict.ContainsKey(color))
+                    {
+                        ColorToSubGoalDict.Add(color, new List<SubGoal>());
+                    }
+                    ColorToSubGoalDict[color].Add(MoveToBoxSubGoal);
+                    ColorToSubGoalDict[color].Add(MoveBoxToSubGoal);
                 }
-                ColorToSubGoalDict[color].Add(MoveToBoxSubGoal);
-                ColorToSubGoalDict[color].Add(MoveBoxToSubGoal);
             }
             return ColorToSubGoalDict;
 
         }
-
         public void ReadMap()
         {
             colors = new Dictionary<char, string>();
@@ -314,48 +119,13 @@ namespace MAClient.Classes
                 y++;
             }
         }
-
-        private void assignGoals()
-        {
-
-            // update agents beliefs to the state of the inital state
-            foreach (Agent agent in CurrentNode.agentList.Entities)
-            {
-                agent.CurrentBeliefs = CurrentNode.copyNode();
-                agent.CurrentBeliefs.boxList.Entities.Where(x => x.color != agent.color).ToList().ForEach(b=> agent.CurrentBeliefs.boxList.Remove(b.uid));
-
-                agent.CurrentBeliefs.agentList.Entities.Where(x => x.uid != agent.uid).ToList().ForEach(a => agent.CurrentBeliefs.agentList.Remove(a.uid));
-                agent.CurrentBeliefs.agentCol = agent.col;
-                agent.CurrentBeliefs.agentRow = agent.row;
-                agent.strategy = new StrategyBestFirst(new Greedy(agent.CurrentBeliefs));
-            }
-            foreach (string color in subGoalDict.Keys)
-            {
-                List<SubGoal> assignableSubGoals = subGoalDict[color];
-                List<Agent> agents = CurrentNode.agentList.Entities.Where(x => x.color == color).ToList();
-                for (int i = 0; i< assignableSubGoals.Count; i += 2)
-                {
-                    Agent agent = agents.ElementAt((i/2)%agents.Count);
-                    SubGoal moveToBox = assignableSubGoals.ElementAt(i);
-                    SubGoal moveBoxToGoal = assignableSubGoals.ElementAt(i + 1);
-
-                    if (moveToBox.type != SubGoalType.MoveAgentTo || moveBoxToGoal.type != SubGoalType.MoveBoxTo)
-                    {
-                        throw new Exception("wrong goal type");
-                    }
-                    agent.subgoals.Push(moveBoxToGoal);
-                    agent.subgoals.Push(moveToBox);
-                }
-            }
-        }
-
         public bool Run()
         {
             try
             {
                 while (!CurrentNode.isGoalState())
                 {
-                    TakeAction();
+                    this.TakeAction();
                 }
 
                 Plan plan = CurrentNode.extractPlan();
@@ -371,7 +141,7 @@ namespace MAClient.Classes
                         List<int> list = agentActions.Keys.ToList();
                         list.Sort();
                         var actions = list.Select(x => agentActions[x]);
-                        MakeAction(actions.ToList());
+                        this.MakeAction(actions.ToList());
                         agentActions = new Dictionary<int, string>();
                     }
 
@@ -386,8 +156,48 @@ namespace MAClient.Classes
             return true;
         }
 
+        private void AssignGoals()
+        {
+            // update agents beliefs to the state of the inital state
+            foreach (Agent agent in CurrentNode.agentList.Entities)
+            {
+                agent.CurrentBeliefs = CurrentNode.copyNode();
+                agent.CurrentBeliefs.boxList.Entities.Where(x => x.color != agent.color).ToList().ForEach(b => agent.CurrentBeliefs.boxList.Remove(b.uid));
+                agent.CurrentBeliefs.agentList.Entities.Where(x => x.uid != agent.uid).ToList().ForEach(a => agent.CurrentBeliefs.agentList.Remove(a.uid));
+                agent.CurrentBeliefs.agentCol = agent.col;
+                agent.CurrentBeliefs.agentRow = agent.row;
+                agent.strategy = new StrategyBestFirst(new Greedy(agent.CurrentBeliefs));
+            }
+            foreach (string color in subGoalDict.Keys)
+            {
+                List<SubGoal> assignableSubGoals = subGoalDict[color];
+                List<Agent> agents = CurrentNode.agentList.Entities.Where(x => x.color == color).ToList();
+                for (int i = 0; i < assignableSubGoals.Count; i += 2)
+                {
+                    Agent agent = agents.ElementAt((i / 2) % agents.Count);
+                    SubGoal moveToBox = assignableSubGoals.ElementAt(i);
+                    SubGoal moveBoxToGoal = assignableSubGoals.ElementAt(i + 1);
 
-        public bool MakeAction(List<string> agentActions)
+                    if (!(moveToBox is MoveAgentTo) || !(moveBoxToGoal is MoveBoxTo))
+                    {
+                        throw new Exception("wrong goal type");
+                    }
+                    moveToBox.owner = agent.uid;
+                    moveBoxToGoal.owner = agent.uid;
+                    agent.subgoals.Push(moveBoxToGoal);
+                    agent.subgoals.Push(moveToBox);
+                }
+            }
+        }
+        private void TakeAction()
+        {
+            foreach (int agentId in agentIds)
+            {
+                Agent agent = CurrentNode.agentList[agentId];
+                agent.ProcessAgentAction(ref CurrentNode);
+            }
+        }
+        private bool MakeAction(List<string> agentActions)
         {
 
             string jointaction = "[";
@@ -396,8 +206,8 @@ namespace MAClient.Classes
             {
                 jointaction += command + ",";
             }
-                jointaction += agentActions.Last() + "]";
-           
+            jointaction += agentActions.Last() + "]";
+
             // place message in buffer
             Console.Out.WriteLine(jointaction);
 
@@ -411,6 +221,5 @@ namespace MAClient.Classes
             }
             return true;
         }
-
     }
 }

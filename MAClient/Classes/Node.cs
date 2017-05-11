@@ -190,18 +190,21 @@ namespace MAClient.Classes
                     col = canValidate ? newAgentCol : boxCol;
                     row = canValidate ? newAgentRow : boxRow;
                     break;
+                case ActionType.NoOp:
+                    //All is fine and dandy
+                    return null;
             }
 
             if (canValidate)
             {
-                Node ancestor = this.FindAncestor(this.agentList.Count-1);
+                Node ancestor = this.FindAncestor(this.agentList.Count - 1);
                 bool ancestorFree = ancestor.cellIsFree(col, row);
                 bool currentNodeFree = this.cellIsFree(col, row);
-                if(!currentNodeFree)
+                if (!currentNodeFree)
                 {
-                    return this.GetEntityAt(col, row);                    
+                    return this.GetEntityAt(col, row);
                 }
-                else if(!ancestorFree)
+                else if (!ancestorFree)
                 {
                     return ancestor.GetEntityAt(col, row);
                 }
@@ -245,14 +248,6 @@ namespace MAClient.Classes
             {
                 return this.boxList[col, row];
             }
-            //else if (this.parent.agentList[col, row] != null)
-            //{
-            //    return this.parent.agentList[col, row];
-            //}
-            //else if (this.parent.boxList[col, row] != null)
-            //{
-            //    return this.parent.boxList[col, row];
-            //}
 
             return null;
         }
@@ -355,7 +350,7 @@ namespace MAClient.Classes
             StringBuilder s = new StringBuilder();
             for (int row = 0; row < MAX_ROW; row++)
             {
-                if (wallList[0, row] == null )
+                if (wallList[0, row] == null)
                 {
                     break;
                 }
@@ -369,7 +364,7 @@ namespace MAClient.Classes
                     {
                         s.Append(goalList[col, row].id);
                     }
-                    else if (wallList[col, row]!= null)
+                    else if (wallList[col, row] != null)
                     {
                         s.Append("+");
                     }

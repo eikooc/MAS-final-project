@@ -9,14 +9,15 @@ namespace MAClient.Classes.Goals
     {
         public IEntity position;
 
-        public MoveAgentTo(IEntity position) : base(SubGoalType.MoveAgentTo)
+        public MoveAgentTo(IEntity position, int owner) : base(owner)
         {
             this.position = position;
         }
 
-        public override bool IsSolved(Node n)
+        public override bool IsGoalState(Node n)
         {
-            return ((Math.Abs(n.agentCol - this.position.col) + Math.Abs(n.agentRow - this.position.row)) == 1);
+            Agent agent = n.agentList[this.owner];
+            return ((Math.Abs(agent.col - this.position.col) + Math.Abs(agent.row - this.position.row)) == 1);
         }
 
         public override int heuristicScore(Node n)

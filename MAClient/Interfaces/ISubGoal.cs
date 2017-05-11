@@ -4,7 +4,7 @@ namespace MAClient.Interfaces
 {
     public interface ISubGoal
     {
-        bool IsSolved(Node n);
+        bool IsGoalState(Node n);
         int heuristicScore(Node n);
     }
 }

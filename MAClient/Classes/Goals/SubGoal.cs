@@ -4,20 +4,26 @@ using MAClient.Interfaces;
 namespace MAClient.Classes
 {
 
-
     public abstract class SubGoal : ISubGoal
     {
-        public SubGoalType type;
         public bool completed;
-        
-        public SubGoal(SubGoalType type)
+        public bool failed;
+        public int owner;
+
+        public SubGoal(int owner)
         {
-            this.type = type;
+            this.failed = false;
             this.completed = false;
+            this.owner = owner;
         }
 
-        public abstract bool IsSolved(Node n);
+        public abstract bool IsGoalState(Node n);
         public abstract int heuristicScore(Node n);
+
+        public void UpdateState(Node n)
+        {
+            this.completed = this.IsGoalState(n);
+        }
     }
 }
 

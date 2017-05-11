@@ -1,16 +1,13 @@
 ﻿using Common.Interfaces;
 using MAClient.Classes.Entities;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MAClient.Classes
 {
     public class Plan
     {
         public Stack<Node> path;
+
         public Plan(Node n)
         {
             List<Node> estimatedPlan = new List<Node>();
@@ -27,7 +24,7 @@ namespace MAClient.Classes
 
         public Node GetNextAction()
         {
-            if(!this.Completed)
+            if (!this.Completed)
             {
                 return this.path.Pop();
             }
@@ -38,7 +35,6 @@ namespace MAClient.Classes
         {
             this.path.Push(action);
         }
-
 
         public List<IEntity> ExtractUsedFields()
         {
