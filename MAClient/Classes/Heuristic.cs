@@ -12,6 +12,7 @@ namespace MAClient.Classes
 
         public Heuristic(Node initialState)
         {
+            /*
             // maxDist = maximum manhatten distance between any two points in the map
             this.maxDist = Node.MAX_ROW + Node.MAX_COL;
 
@@ -44,6 +45,7 @@ namespace MAClient.Classes
                     boxList.Remove(_box);
                 }
             }
+            */
         }
 
         public int h(Node n)
@@ -51,7 +53,7 @@ namespace MAClient.Classes
             int score = 0;
             int maxSubgoalValue = int.MinValue / (Node.goalList.Count + 1);
             Agent agent = n.agentList[n.agentCol, n.agentRow];
-            SubGoal currentSubGoal = agent.subgoals.Peek();
+            SubGoal currentSubGoal = agent.CurrentSubgoal;
 
             foreach (Box box in n.boxList.Entities)
             {

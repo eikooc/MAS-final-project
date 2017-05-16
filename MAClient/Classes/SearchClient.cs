@@ -1,4 +1,5 @@
 ﻿using Common.Classes;
+using Common.Interfaces;
 using MAClient.Classes.Entities;
 using MAClient.Classes.Goals;
 using System;
@@ -15,11 +16,12 @@ namespace MAClient.Classes
         private Heuristic heuristic;
         private Dictionary<char, string> colors;
         private List<int> agentIds;
-        private static Node CurrentNode;
+        public static Node CurrentNode;
+        private static Dictionary<int, MapPartition> partitions;
 
         public SearchClient()
         {
-            Debugger.Launch();
+            //Debugger.Launch();
             this.ReadMap();
 
             // update current node to the inital state
@@ -27,14 +29,51 @@ namespace MAClient.Classes
             // intital heuristic on the basis of the read map
             this.heuristic = new Greedy(initialState);
             // create the inital subgoals on the basis of the read map
-            this.subGoalDict = this.CreateSubGoals(initialState);
+            this.CreatePartitions(initialState);
+            this.AssignGoalsToAgents();
+            //this.subGoalDict = this.CreateSubGoals(initialState);
             // assigne goals to agents
-            this.AssignGoals();
+            //this.AssignGoals();
         }
-        public Dictionary<string, List<SubGoal>> CreateSubGoals(Node initialState)
+        // deprecated
+        private void AssignGoals()
+        {
+            // update agents beliefs to the state of the inital state
+            foreach (Agent agent in CurrentNode.agentList.Entities)
+            {
+                agent.CurrentBeliefs = CurrentNode.copyNode();
+                agent.CurrentBeliefs.boxList.Entities.Where(x => x.color != agent.color).ToList().ForEach(b => agent.CurrentBeliefs.boxList.Remove(b.uid));
+                agent.CurrentBeliefs.agentList.Entities.Where(x => x.uid != agent.uid).ToList().ForEach(a => agent.CurrentBeliefs.agentList.Remove(a.uid));
+                agent.CurrentBeliefs.agentCol = agent.col;
+                agent.CurrentBeliefs.agentRow = agent.row;
+                agent.strategy = new StrategyBestFirst(new AStar(agent.CurrentBeliefs));
+            }
+            foreach (string color in subGoalDict.Keys)
+            {
+                List<SubGoal> assignableSubGoals = subGoalDict[color];
+                List<Agent> agents = CurrentNode.agentList.Entities.Where(x => x.color == color).ToList();
+                for (int i = 0; i < assignableSubGoals.Count; i += 2)
+                {
+                    Agent agent = agents.ElementAt((i / 2) % agents.Count);
+                    SubGoal moveToBox = assignableSubGoals.ElementAt(i);
+                    SubGoal moveBoxToGoal = assignableSubGoals.ElementAt(i + 1);
+
+                    if (!(moveToBox is MoveAgentTo) || !(moveBoxToGoal is MoveBoxTo))
+                    {
+                        throw new Exception("wrong goal type");
+                    }
+                    moveToBox.owner = agent.uid;
+                    moveBoxToGoal.owner = agent.uid;
+                    agent.AddSubGoal(moveBoxToGoal);
+                    agent.AddSubGoal(moveToBox);
+                }
+            }
+        }
+        private Dictionary<string, List<SubGoal>> CreateSubGoals(Node initialState)
         {
             Dictionary<string, List<SubGoal>> ColorToSubGoalDict = new Dictionary<string, List<SubGoal>>();
             // loop throug goals to create sub goals, if goal does not have a corresponding box then it will not work.
+
             foreach (Box box in initialState.boxList.Entities)
             {
                 if (box.assignedGoal != null)
@@ -52,6 +91,68 @@ namespace MAClient.Classes
             }
             return ColorToSubGoalDict;
 
+        }
+
+        private void CreatePartitions(Node intitialState)
+        {
+            partitions = new Dictionary<int, MapPartition>();
+            HashSet<int> visitedGoals = new HashSet<int>();
+            foreach (Goal goal in Node.goalList.Entities)
+            {
+                if (visitedGoals.Contains(goal.uid)) continue;
+
+                MapPartition partition = new MapPartition(Node.MAX_COL, Node.MAX_ROW);
+                DistanceMap dm = new DistanceMap(goal.col, goal.row, intitialState);
+                while (dm.frontier.Count != 0)
+                {
+                    foreach (IEntity entity in dm.getEntities())
+                    {
+                        if (entity is Agent) partition.AddAgent((Agent)entity);
+                        else if (entity is Box) partition.AddBox((Box)entity);
+                        else if (entity is Goal)
+                        {
+                            partition.AddGoal((Goal)entity);
+                            visitedGoals.Add(entity.uid);
+                        }
+                    }
+                    dm.Expand();
+                }
+
+                visitedGoals.Add(goal.uid);
+                foreach (Agent agent in partition.Agents.Entities)
+                {
+                    partitions.Add(agent.uid, partition);
+                }
+
+                partition.ProcessPartition();
+            }
+        }
+        private void AssignGoalsToAgents()
+        {
+            foreach (Agent agent in CurrentNode.agentList.Entities)
+            {
+                agent.CurrentBeliefs = CurrentNode.copyNode();
+                agent.CurrentBeliefs.boxList.Entities.Where(x => x.color != agent.color).ToList().ForEach(b => agent.CurrentBeliefs.boxList.Remove(b.uid));
+                agent.CurrentBeliefs.agentList.Entities.Where(x => x.uid != agent.uid).ToList().ForEach(a => agent.CurrentBeliefs.agentList.Remove(a.uid));
+                agent.CurrentBeliefs.agentCol = agent.col;
+                agent.CurrentBeliefs.agentRow = agent.row;
+                agent.strategy = new StrategyBestFirst(new AStar(agent.CurrentBeliefs));
+                AssignGoal(agent, CurrentNode);
+            }
+        }
+        public static bool AssignGoal(Agent agent, Node currentNode)
+        {
+            if (partitions.ContainsKey(agent.uid))
+            {
+                Objective objective = partitions[agent.uid].GetObjective(agent, currentNode);
+                if (objective != null)
+                {
+                    agent.AddSubGoal(objective.MoveBoxTo);
+                    agent.AddSubGoal(objective.MoveAgentTo);
+                    return true;
+                }
+            }
+            return false; // agent cannot do anything
         }
         public void ReadMap()
         {
@@ -90,6 +191,7 @@ namespace MAClient.Classes
                     if ('0' <= chr && chr <= '9')
                     {
                         int id = (int)chr - '0';
+                        if (!colors.ContainsKey(chr)) colors.Add(chr, "blue");
                         Agent agent = new Agent(x, y, id, colors[chr]);
                         initialState.agentList.Add(agent);
                         this.agentIds.Add(agent.uid);
@@ -100,6 +202,7 @@ namespace MAClient.Classes
                     }
                     else if ('A' <= chr && chr <= 'Z')
                     { // Box.
+                        if (!colors.ContainsKey(chr)) colors.Add(chr, "blue");
                         initialState.boxList.Add(new Box(x, y, chr, colors[chr]));
                     }
                     else if ('a' <= chr && chr <= 'z')
@@ -149,46 +252,13 @@ namespace MAClient.Classes
             }
             catch (Exception e)
             {
-                Debugger.Launch();
+                //Debugger.Launch();
                 throw e;
                 return false;
             }
             return true;
         }
 
-        private void AssignGoals()
-        {
-            // update agents beliefs to the state of the inital state
-            foreach (Agent agent in CurrentNode.agentList.Entities)
-            {
-                agent.CurrentBeliefs = CurrentNode.copyNode();
-                agent.CurrentBeliefs.boxList.Entities.Where(x => x.color != agent.color).ToList().ForEach(b => agent.CurrentBeliefs.boxList.Remove(b.uid));
-                agent.CurrentBeliefs.agentList.Entities.Where(x => x.uid != agent.uid).ToList().ForEach(a => agent.CurrentBeliefs.agentList.Remove(a.uid));
-                agent.CurrentBeliefs.agentCol = agent.col;
-                agent.CurrentBeliefs.agentRow = agent.row;
-                agent.strategy = new StrategyBestFirst(new Greedy(agent.CurrentBeliefs));
-            }
-            foreach (string color in subGoalDict.Keys)
-            {
-                List<SubGoal> assignableSubGoals = subGoalDict[color];
-                List<Agent> agents = CurrentNode.agentList.Entities.Where(x => x.color == color).ToList();
-                for (int i = 0; i < assignableSubGoals.Count; i += 2)
-                {
-                    Agent agent = agents.ElementAt((i / 2) % agents.Count);
-                    SubGoal moveToBox = assignableSubGoals.ElementAt(i);
-                    SubGoal moveBoxToGoal = assignableSubGoals.ElementAt(i + 1);
-
-                    if (!(moveToBox is MoveAgentTo) || !(moveBoxToGoal is MoveBoxTo))
-                    {
-                        throw new Exception("wrong goal type");
-                    }
-                    moveToBox.owner = agent.uid;
-                    moveBoxToGoal.owner = agent.uid;
-                    agent.subgoals.Push(moveBoxToGoal);
-                    agent.subgoals.Push(moveToBox);
-                }
-            }
-        }
         private void TakeAction()
         {
             foreach (int agentId in agentIds)

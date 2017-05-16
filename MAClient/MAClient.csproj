@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\AStar.cs" />
     <Compile Include="Classes\Entities\Agent.cs" />
     <Compile Include="Classes\Entities\Box.cs" />
     <Compile Include="Classes\Command.cs" />
@@ -57,6 +58,8 @@
     <Compile Include="Classes\Goals\MoveBoxTo.cs" />
     <Compile Include="Classes\Greedy.cs" />
     <Compile Include="Classes\Heuristic.cs" />
+    <Compile Include="Classes\MapPartition.cs" />
+    <Compile Include="Classes\Objective.cs" />
     <Compile Include="Classes\Plan.cs" />
     <Compile Include="Classes\SearchClient.cs" />
     <Compile Include="Classes\Node.cs" />

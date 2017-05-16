@@ -13,11 +13,14 @@ namespace MAClient.Classes.Entities
         public int row { get; set; }
         public int uid { get; set; }
         public string color;
-        public Stack<SubGoal> subgoals;
+        private Stack<SubGoal> subgoals;
         public Node CurrentBeliefs;
         public Strategy strategy;
         private Plan plan;
         private Stack<IEntity> encounteredObjects;
+        public SubGoal CurrentSubgoal { get { return this.subgoals.Count > 0 ? this.subgoals.Peek() : null; } }
+        public bool HasPlan { get { return this.plan != null; } }
+        public bool HasSubGoals { get { return this.subgoals != null && this.subgoals.Count != 0; } }
 
         public Agent(int x, int y, int id, string color)
         {
@@ -33,83 +36,84 @@ namespace MAClient.Classes.Entities
         {
             if (this.IsWaiting())
             {
+                // agent is done with subgoals, perform noOp
                 this.PerformNoOp(ref CurrentNode);
             }
             else
             {
                 // get agents next move
-                Node nextMove = this.GetNextMove();
-                if (nextMove == null) // cleanup here after reffactoring
+                Node nextMove = this.GetNextMove(ref CurrentNode);
+
+
+                // convert the node to a command
+                Command nextAction = nextMove.action;
+                // validate that the command is legal
+                IEntity obstacle = CurrentNode.ValidateAction(nextAction, this.col, this.row);
+                if (obstacle == null)
                 {
-                    if (this.IsWaiting())
-                    {
-                        // agent is done with subgoals, perform noOp
-                        this.PerformNoOp(ref CurrentNode);
-                    }
+                    // succesfull move
+                    this.AcceptNextMove();
+                    CurrentNode = CurrentNode.ChildNode();
+                    CurrentNode.updateNode(nextMove, this.col, this.row);
                 }
                 else
                 {
-                    // convert the node to a command
-                    Command nextAction = nextMove.action;
-                    // validate that the command is legal
-                    IEntity obstacle = CurrentNode.ValidateAction(nextAction, this.col, this.row);
-                    if (obstacle == null)
+                    // if not, then update agents beliefs, and replan a plan for the current sub goal
+                    this.Backtrack();
+                    if (obstacle is Box)
                     {
-                        // succesfull move
-                        this.AcceptNextMove();
-                        CurrentNode = CurrentNode.ChildNode();
-                        CurrentNode.updateNode(nextMove, this.col, this.row);
+                        // opdaterer kun en box position men ikke en players hvis den blive "handlet". Kan ikke skelne imellem en box i bevægelse og en stationær
+                        this.UpdateCurrentBelief(obstacle, CurrentNode.boxList, this.CurrentBeliefs.boxList);
+                        this.UpdateCurrentBelief(null, CurrentNode.agentList, this.CurrentBeliefs.agentList);
+                        this.encounteredObjects.Push(obstacle);
+                        this.TryConflictResolve(ref CurrentNode);
                     }
-                    else
+                    else if (obstacle is Agent)
                     {
-                        // if not, then update agents beliefs, and replan a plan for the current sub goal
-                        this.Backtrack();
-                        if (obstacle is Box)
+                        Agent otherAgent = (Agent)obstacle;
+                        Agent perceivedAgent = otherAgent.CurrentBeliefs.agentList[this.uid];
+                        if (perceivedAgent != null && perceivedAgent.col == this.col && perceivedAgent.row == this.row)
                         {
-                            // opdaterer kun en box position men ikke en players hvis den blive "handlet". Kan ikke skelne imellem en box i bevægelse og en stationær
-                            this.UpdateCurrentBelief(obstacle, CurrentNode.boxList, this.CurrentBeliefs.boxList);
-                            this.UpdateCurrentBelief(null, CurrentNode.agentList, this.CurrentBeliefs.agentList);
+                            this.PerformNoOp(ref CurrentNode);
+                        }
+                        else
+                        {
+                            this.UpdateCurrentBelief(obstacle, CurrentNode.agentList, this.CurrentBeliefs.agentList);
+                            this.UpdateCurrentBelief(null, CurrentNode.boxList, this.CurrentBeliefs.boxList);
                             this.encounteredObjects.Push(obstacle);
                             this.TryConflictResolve(ref CurrentNode);
-                        }
-                        else if (obstacle is Agent)
-                        {
-                            Agent otherAgent = (Agent)obstacle;
-                            Agent perceivedAgent = otherAgent.CurrentBeliefs.agentList[this.uid];
-                            if (perceivedAgent != null && perceivedAgent.col == this.col && perceivedAgent.row == this.row)
-                            {
-                                this.PerformNoOp(ref CurrentNode);
-                            }
-                            else
-                            {
-                                this.UpdateCurrentBelief(obstacle, CurrentNode.agentList, this.CurrentBeliefs.agentList);
-                                this.UpdateCurrentBelief(null, CurrentNode.boxList, this.CurrentBeliefs.boxList);
-                                this.encounteredObjects.Push(obstacle);
-                                this.TryConflictResolve(ref CurrentNode);
-                            }
                         }
                     }
                 }
             }
         }
-
-        private Node GetNextMove()
+        public void AddSubGoal(SubGoal subgoal)
         {
-            if (this.plan == null)
+            this.subgoals?.Push(subgoal);
+            subgoal.owner = this.uid;
+        }
+
+        private Node GetNextMove(ref Node currentNode)
+        {
+            if (!this.HasPlan)
             {
-                if (this.subgoals.Count != 0)
+                if (!this.HasSubGoals)
+                {
+                    SearchClient.AssignGoal(this, currentNode);
+                }
+                if (this.HasSubGoals)
                 {
                     this.plan = this.CreatePlan();
-                    while (this.plan == null || this.plan.Completed)
+                    while (!this.HasPlan || this.plan.Completed)
                     {
-                        if (this.plan == null)
+                        if (!this.HasPlan)
                         {
                             return null;
                         }
                         if (this.plan.Completed)
                         {
-                            this.subgoals.Pop();
-                            if (this.subgoals.Count != 0)
+                            SolveSubgoal();
+                            if (this.HasSubGoals)
                             {
                                 this.plan = this.CreatePlan();
                             }
@@ -122,18 +126,19 @@ namespace MAClient.Classes.Entities
                 }
                 else
                 {
-                    return null;
+                    this.CurrentBeliefs = this.CreateNoOp(ref currentNode);
+                    this.ResetBeliefs();
+                    return this.CurrentBeliefs;
                 }
             }
 
-            Node nextMove = this.plan.GetNextAction();
             // pass on the remaining plan to agent in the next state
-            this.CurrentBeliefs = nextMove;
-            return nextMove;
+            this.CurrentBeliefs = this.plan.GetNextAction();
+            return this.CurrentBeliefs;
         }
         private void AcceptNextMove()
         {
-            if (this.plan.Completed)
+            if (this.HasPlan && this.plan.Completed)
             {
                 this.SolveSubgoal();
                 this.ResetBeliefs();
@@ -156,7 +161,7 @@ namespace MAClient.Classes.Entities
                 }
                 return false;
             }
-            return true;
+            return false;
         }
         private void UpdateCurrentBelief<T>(IEntity entity, EntityList<T> currentNode, EntityList<T> currentBelief) where T : IEntity
         {
@@ -206,7 +211,7 @@ namespace MAClient.Classes.Entities
                                 samaritan.subgoals.Push(waitForCompletion);
                                 samaritan.subgoals.Push(moveAgentAway);
                                 samaritan.ReplanWithSubGoal(moveAgentTo);
-                                samaritan.plan = null;
+                                samaritan.plan = null; // <--- what is this?
                                 this.subgoals.Push(new WaitFor(moveAgentAway, samaritan.uid));
                             }
                             else
@@ -239,14 +244,19 @@ namespace MAClient.Classes.Entities
                 this.PerformNoOp(ref CurrentNode);
             }
         }
-        private void PerformNoOp(ref Node CurrentNode)
+        private void PerformNoOp(ref Node currentNode)
         {
-            Node n = CurrentNode.copyNode();
+            Node n = this.CreateNoOp(ref currentNode);
+            currentNode = currentNode.ChildNode();
+            currentNode.updateNode(n, this.col, this.row);
+        }
+        private Node CreateNoOp(ref Node currentNode)
+        {
+            Node n = currentNode.copyNode();
             n.action = new Command(ActionType.NoOp);
             n.agentCol = this.col;
             n.agentRow = this.row;
-            CurrentNode = CurrentNode.ChildNode();
-            CurrentNode.updateNode(n, this.col, this.row);
+            return n;
         }
         private void ResetBeliefs()
         {
