@@ -1,1 +1,1 @@
-java -jar server.jar -l Competition\\solved\\SANevermind.lvl -c "MAClient\\bin\\Debug\\MAClient.exe" -g
+java -jar server.jar -l Competition\\unsolved\\MAOmnics.lvl -c "MAClient\\bin\\Release\\MAClient.exe" -g

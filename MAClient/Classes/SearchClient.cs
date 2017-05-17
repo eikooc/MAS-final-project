@@ -123,7 +123,8 @@ namespace MAClient.Classes
                 lines.Add(line);
                 line = Console.In.ReadLine();
             }
-            initialState = new Node(null, lines.Count, lines[0].Length);
+            int maxWidth = lines.Max(x => x.Length);
+            initialState = new Node(null, lines.Count, maxWidth);
 
             int y = 0;
             // Read lines specifying level layout

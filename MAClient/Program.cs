@@ -1,6 +1,7 @@
 ﻿using MAClient.Classes;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -21,6 +22,7 @@ namespace MAClient
             }
             catch (Exception e)
             {
+                //Debugger.Launch();
                 // Got nowhere to write to probably
             }
         }

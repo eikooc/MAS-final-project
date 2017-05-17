@@ -37,7 +37,6 @@ namespace MAClient.Classes
             depth = 1;
             frontier.Enqueue(startingPos);
             distanceMap[startingPos.Item1, startingPos.Item2] = depth;
-
         }
 
         public void Expand()
