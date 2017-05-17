@@ -103,7 +103,9 @@ namespace MAClient.Classes
                     }
                     if (candidateSG != null)
                     {
-                        candidateSG.dependencyOrder++;                        
+                        Box box = SearchClient.CurrentNode.boxList[candidateSG.box.uid];
+                        candidateSG.box = box;
+                        candidateSG.dependencyOrder++;
                         return new Objective(candidateSG, new MoveAgentTo(candidateSG.box, agent.uid));
                     }
                 }

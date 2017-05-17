@@ -1,1 +1,1 @@
-java -jar Competition\\cserver.jar -d Competition\\competition_levels\ -c "MAClient\\bin\\Debug\\MAClient.exe"
+java -jar Competition\\cserver.jar -d Competition\\competition_levels\ -c "MAClient\\bin\\Release\\MAClient.exe"

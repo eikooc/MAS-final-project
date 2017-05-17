@@ -19,7 +19,7 @@ namespace MAClient.Classes
         private static List<MapPartition> partitions;
         public SearchClient()
         {
-            Debugger.Launch();
+            //Debugger.Launch();
             this.ReadMap();
             // update current node to the inital state
             CurrentNode = this.initialState;
@@ -196,7 +196,7 @@ namespace MAClient.Classes
             }
             catch (Exception e)
             {
-                Debugger.Launch();
+                //Debugger.Launch();
                 throw e;
                 return false;
             }

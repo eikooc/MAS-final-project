@@ -36,7 +36,6 @@ namespace MAClient.Classes.Entities
 
         public void ProcessAgentAction(ref Node CurrentNode)
         {
-            actionIndex++;
             if (this.IsWaiting())
             {
                 // agent is done with subgoals, perform noOp
@@ -82,7 +81,7 @@ namespace MAClient.Classes.Entities
                         else
                         {
                             this.UpdateCurrentBelief(obstacle, CurrentNode.agentList, this.CurrentBeliefs.agentList);
-                            this.UpdateCurrentBelief(null, CurrentNode.boxList, this.CurrentBeliefs.boxList);
+                            //this.UpdateCurrentBelief(null, CurrentNode.boxList, this.CurrentBeliefs.boxList);
                             this.encounteredObjects.Push(obstacle);
                             this.TryConflictResolve(ref CurrentNode);
                         }
@@ -355,7 +354,7 @@ namespace MAClient.Classes.Entities
             clone.strategy = this.strategy;
             clone.CurrentBeliefs = this.CurrentBeliefs;
             clone.subgoals = this.subgoals;
-
+            clone.actionIndex = this.actionIndex + 1;
             return clone;
         }
     }
