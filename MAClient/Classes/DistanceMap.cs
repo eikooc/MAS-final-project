@@ -9,7 +9,7 @@ using Common.Interfaces;
 
 namespace MAClient.Classes
 {
-    class DistanceMap
+    public class DistanceMap
     {
         public int depth;
         public int[,] distanceMap { get; }

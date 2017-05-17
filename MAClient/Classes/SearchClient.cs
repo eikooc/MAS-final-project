@@ -15,11 +15,11 @@ namespace MAClient.Classes
         private Dictionary<char, string> colors;
         private List<int> agentIds;
         public static Node CurrentNode;
-        private static Dictionary<int, MapPartition> partitions;
-
+        private static Dictionary<int, MapPartition> partitionMap;
+        private static List<MapPartition> partitions;
         public SearchClient()
         {
-            //Debugger.Launch();
+            Debugger.Launch();
             this.ReadMap();
             // update current node to the inital state
             CurrentNode = this.initialState;
@@ -30,15 +30,16 @@ namespace MAClient.Classes
 
         public static IEnumerable<Agent> FindSamaritans(Agent agent)
         {
-            if (partitions.ContainsKey(agent.uid))
+            if (partitionMap.ContainsKey(agent.uid))
             {
-                return CurrentNode.agentList.Entities.Where(x => partitions[agent.uid].Agents.Ids.Contains(x.uid));
+                return CurrentNode.agentList.Entities.Where(x => partitionMap[agent.uid].Agents.Ids.Contains(x.uid));
             }
             return new List<Agent>();
         }
         private void CreatePartitions(Node intitialState)
         {
-            partitions = new Dictionary<int, MapPartition>();
+            partitions = new List<MapPartition>();
+            partitionMap = new Dictionary<int, MapPartition>();
             HashSet<int> visitedGoals = new HashSet<int>();
             foreach (Goal goal in Node.goalList.Entities)
             {
@@ -64,9 +65,9 @@ namespace MAClient.Classes
                 visitedGoals.Add(goal.uid);
                 foreach (Agent agent in partition.Agents.Entities)
                 {
-                    partitions.Add(agent.uid, partition);
+                    partitionMap.Add(agent.uid, partition);
                 }
-
+                partitions.Add(partition);
                 partition.ProcessPartition();
             }
         }
@@ -85,9 +86,9 @@ namespace MAClient.Classes
         }
         public static bool AssignGoal(Agent agent, Node currentNode)
         {
-            if (partitions.ContainsKey(agent.uid))
+            if (partitionMap.ContainsKey(agent.uid))
             {
-                Objective objective = partitions[agent.uid].GetObjective(agent, currentNode);
+                Objective objective = partitionMap[agent.uid].GetObjective(agent, currentNode);
                 if (objective != null)
                 {
                     agent.AddSubGoal(objective.MoveBoxTo);
@@ -195,7 +196,7 @@ namespace MAClient.Classes
             }
             catch (Exception e)
             {
-                //Debugger.Launch();
+                Debugger.Launch();
                 throw e;
                 return false;
             }

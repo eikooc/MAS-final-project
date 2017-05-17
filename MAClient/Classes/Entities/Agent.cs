@@ -117,7 +117,7 @@ namespace MAClient.Classes.Entities
                         }
                         if (this.plan.Completed)
                         {
-                            SolveSubgoal();
+                            this.SolveSubgoal();
                             if (this.HasSubGoals)
                             {
                                 this.plan = this.CreatePlan();
@@ -161,7 +161,7 @@ namespace MAClient.Classes.Entities
                 {
                     if (currentSubgoal.IsGoalState(null))
                     {
-                        SolveSubgoal();
+                        this.SolveSubgoal();
                         return false;
                     }
                     return true;
@@ -196,6 +196,7 @@ namespace MAClient.Classes.Entities
                 this.PerformNoOp(ref CurrentNode);
             }
         }
+
         private void ResolveConflict(ref Node CurrentNode)
         {
             if (this.encounteredObjects.Count != 0)
@@ -217,10 +218,10 @@ namespace MAClient.Classes.Entities
                             {
                                 MoveAgentTo moveAgentTo = new MoveAgentTo(box, samaritan.uid);
                                 WaitFor waitForCompletion = new WaitFor(this.subgoals.Peek(), samaritan.uid);
-                                samaritan.subgoals.Push(waitForCompletion);
-                                samaritan.subgoals.Push(moveAgentAway);
+                                samaritan.AddSubGoal(waitForCompletion);
+                                samaritan.AddSubGoal(moveAgentAway);
                                 samaritan.ReplanWithSubGoal(moveAgentTo);
-                                this.subgoals.Push(new WaitFor(moveAgentAway, samaritan.uid));
+                                this.AddSubGoal(new WaitFor(moveAgentAway, samaritan.uid));
                             }
                             else
                             {
@@ -236,9 +237,9 @@ namespace MAClient.Classes.Entities
                         {
                             WaitFor waitForCompletion = new WaitFor(this.subgoals.Peek(), samaritan.uid);
                             this.UpdateCurrentBelief(this, CurrentNode.agentList, samaritan.CurrentBeliefs.agentList);
-                            samaritan.subgoals.Push(waitForCompletion);
+                            samaritan.AddSubGoal(waitForCompletion);
                             samaritan.ReplanWithSubGoal(moveAgentAway);
-                            this.subgoals.Push(new WaitFor(moveAgentAway, samaritan.uid));
+                            this.AddSubGoal(new WaitFor(moveAgentAway, samaritan.uid));
                         }
                         else
                         {
@@ -279,6 +280,8 @@ namespace MAClient.Classes.Entities
                 subgoal.completed = true;
                 subgoal.owner = -1;
             }
+            //this.ResetBeliefs(); // test later
+            //this.plan = null;
         }
         private void Backtrack()
         {
@@ -292,7 +295,7 @@ namespace MAClient.Classes.Entities
             this.plan = this.CreatePlan();
             if (this.HasPlan && this.plan.Completed )
             {
-                SolveSubgoal();
+                this.SolveSubgoal();
                 this.plan = null;
             }
         }

@@ -1,4 +1,6 @@
-﻿namespace MAClient.Classes
+﻿using MAClient.Classes.Goals;
+
+namespace MAClient.Classes
 {
 
     public class Objective

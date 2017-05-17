@@ -1,1 +1,1 @@
-java -jar server.jar -l Competition\\competition_levels\\SAtnrbts.lvl -c "MAClient\\bin\\Debug\\MAClient.exe" -g
+java -jar server.jar -l Competition\\solved\\SAMAsters.lvl -c "MAClient\\bin\\Debug\\MAClient.exe" -g

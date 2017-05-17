@@ -9,12 +9,14 @@ namespace MAClient.Classes
         public bool completed;
         public bool failed;
         public int owner;
+        public int dependencyOrder;
 
         public SubGoal(int owner)
         {
             this.failed = false;
             this.completed = false;
             this.owner = owner;
+            this.dependencyOrder = 0;
         }
 
         public abstract bool IsGoalState(Node n);
