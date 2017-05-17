@@ -1,0 +1,1 @@
+java -jar Competition\\cserver.jar -d Competition\\Solved\ -c "MAClient\\bin\\Debug\\MAClient.exe"

@@ -12,8 +12,6 @@ namespace MAClient.Classes
     public class SearchClient
     {
         private Node initialState;
-        private Dictionary<string, List<SubGoal>> subGoalDict;
-        private Heuristic heuristic;
         private Dictionary<char, string> colors;
         private List<int> agentIds;
         public static Node CurrentNode;
@@ -23,76 +21,21 @@ namespace MAClient.Classes
         {
             //Debugger.Launch();
             this.ReadMap();
-
             // update current node to the inital state
             CurrentNode = this.initialState;
-            // intital heuristic on the basis of the read map
-            this.heuristic = new Greedy(initialState);
             // create the inital subgoals on the basis of the read map
             this.CreatePartitions(initialState);
             this.AssignGoalsToAgents();
-            //this.subGoalDict = this.CreateSubGoals(initialState);
-            // assigne goals to agents
-            //this.AssignGoals();
         }
-        // deprecated
-        private void AssignGoals()
+
+        public static IEnumerable<Agent> FindSamaritans(Agent agent)
         {
-            // update agents beliefs to the state of the inital state
-            foreach (Agent agent in CurrentNode.agentList.Entities)
+            if (partitions.ContainsKey(agent.uid))
             {
-                agent.CurrentBeliefs = CurrentNode.copyNode();
-                agent.CurrentBeliefs.boxList.Entities.Where(x => x.color != agent.color).ToList().ForEach(b => agent.CurrentBeliefs.boxList.Remove(b.uid));
-                agent.CurrentBeliefs.agentList.Entities.Where(x => x.uid != agent.uid).ToList().ForEach(a => agent.CurrentBeliefs.agentList.Remove(a.uid));
-                agent.CurrentBeliefs.agentCol = agent.col;
-                agent.CurrentBeliefs.agentRow = agent.row;
-                agent.strategy = new StrategyBestFirst(new AStar(agent.CurrentBeliefs));
+                return CurrentNode.agentList.Entities.Where(x => partitions[agent.uid].Agents.Ids.Contains(x.uid));
             }
-            foreach (string color in subGoalDict.Keys)
-            {
-                List<SubGoal> assignableSubGoals = subGoalDict[color];
-                List<Agent> agents = CurrentNode.agentList.Entities.Where(x => x.color == color).ToList();
-                for (int i = 0; i < assignableSubGoals.Count; i += 2)
-                {
-                    Agent agent = agents.ElementAt((i / 2) % agents.Count);
-                    SubGoal moveToBox = assignableSubGoals.ElementAt(i);
-                    SubGoal moveBoxToGoal = assignableSubGoals.ElementAt(i + 1);
-
-                    if (!(moveToBox is MoveAgentTo) || !(moveBoxToGoal is MoveBoxTo))
-                    {
-                        throw new Exception("wrong goal type");
-                    }
-                    moveToBox.owner = agent.uid;
-                    moveBoxToGoal.owner = agent.uid;
-                    agent.AddSubGoal(moveBoxToGoal);
-                    agent.AddSubGoal(moveToBox);
-                }
-            }
+            return new List<Agent>();
         }
-        private Dictionary<string, List<SubGoal>> CreateSubGoals(Node initialState)
-        {
-            Dictionary<string, List<SubGoal>> ColorToSubGoalDict = new Dictionary<string, List<SubGoal>>();
-            // loop throug goals to create sub goals, if goal does not have a corresponding box then it will not work.
-
-            foreach (Box box in initialState.boxList.Entities)
-            {
-                if (box.assignedGoal != null)
-                {
-                    MoveAgentTo MoveToBoxSubGoal = new MoveAgentTo(box, -1);
-                    MoveBoxTo MoveBoxToSubGoal = new MoveBoxTo(box, new Position(box.assignedGoal.col, box.assignedGoal.row), -1);
-                    string color = colors[box.id];
-                    if (!ColorToSubGoalDict.ContainsKey(color))
-                    {
-                        ColorToSubGoalDict.Add(color, new List<SubGoal>());
-                    }
-                    ColorToSubGoalDict[color].Add(MoveToBoxSubGoal);
-                    ColorToSubGoalDict[color].Add(MoveBoxToSubGoal);
-                }
-            }
-            return ColorToSubGoalDict;
-
-        }
-
         private void CreatePartitions(Node intitialState)
         {
             partitions = new Dictionary<int, MapPartition>();

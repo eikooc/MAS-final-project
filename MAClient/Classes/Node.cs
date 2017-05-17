@@ -350,10 +350,10 @@ namespace MAClient.Classes
             StringBuilder s = new StringBuilder();
             for (int row = 0; row < MAX_ROW; row++)
             {
-                if (wallList[0, row] == null)
-                {
-                    break;
-                }
+                //if (wallList[0, row] == null)
+                //{
+                //    break;
+                //}
                 for (int col = 0; col < MAX_COL; col++)
                 {
                     if (boxList[col, row] != null)

@@ -22,6 +22,8 @@ namespace MAClient.Classes.Entities
         public bool HasPlan { get { return this.plan != null; } }
         public bool HasSubGoals { get { return this.subgoals != null && this.subgoals.Count != 0; } }
 
+        public int actionIndex = 0;
+
         public Agent(int x, int y, int id, string color)
         {
             this.col = x;
@@ -34,6 +36,7 @@ namespace MAClient.Classes.Entities
 
         public void ProcessAgentAction(ref Node CurrentNode)
         {
+            actionIndex++;
             if (this.IsWaiting())
             {
                 // agent is done with subgoals, perform noOp
@@ -43,7 +46,7 @@ namespace MAClient.Classes.Entities
             {
                 // get agents next move
                 Node nextMove = this.GetNextMove(ref CurrentNode);
-
+                
 
                 // convert the node to a command
                 Command nextAction = nextMove.action;
@@ -95,7 +98,7 @@ namespace MAClient.Classes.Entities
 
         private Node GetNextMove(ref Node currentNode)
         {
-            if (!this.HasPlan)
+            if (!this.HasPlan || this.plan.Completed)
             {
                 if (!this.HasSubGoals)
                 {
@@ -108,7 +111,9 @@ namespace MAClient.Classes.Entities
                     {
                         if (!this.HasPlan)
                         {
-                            return null;
+                            this.CurrentBeliefs = this.CreateNoOp(ref currentNode);
+                            this.ResetBeliefs();
+                            return this.CurrentBeliefs;
                         }
                         if (this.plan.Completed)
                         {
@@ -119,7 +124,9 @@ namespace MAClient.Classes.Entities
                             }
                             else
                             {
-                                return null;
+                                this.CurrentBeliefs = this.CreateNoOp(ref currentNode);
+                                this.ResetBeliefs();
+                                return this.CurrentBeliefs;
                             }
                         }
                     }
@@ -201,8 +208,10 @@ namespace MAClient.Classes.Entities
                     if (obstacle is Box)
                     {
                         Box box = ((Box)obstacle);
-                        foreach (Agent samaritan in CurrentNode.agentList.Entities.Where(x => x.color == box.color))
+
+                        foreach (Agent samaritan in SearchClient.FindSamaritans(this).Where(x => x.color == box.color))
                         {
+                            if (samaritan.uid == this.uid) continue;
                             MoveAway moveAgentAway = new MoveAway(new IEntity[] { box, samaritan }, usedFields, this.uid, samaritan.uid);
                             if (!samaritan.subgoals.Any(x => x.Equals(moveAgentAway)))
                             {
@@ -211,7 +220,6 @@ namespace MAClient.Classes.Entities
                                 samaritan.subgoals.Push(waitForCompletion);
                                 samaritan.subgoals.Push(moveAgentAway);
                                 samaritan.ReplanWithSubGoal(moveAgentTo);
-                                samaritan.plan = null; // <--- what is this?
                                 this.subgoals.Push(new WaitFor(moveAgentAway, samaritan.uid));
                             }
                             else
@@ -265,8 +273,12 @@ namespace MAClient.Classes.Entities
         }
         private void SolveSubgoal()
         {
-            SubGoal subgoal = this.subgoals.Pop();
-            subgoal.completed = true;
+            if (this.HasSubGoals)
+            {
+                SubGoal subgoal = this.subgoals.Pop();
+                subgoal.completed = true;
+                subgoal.owner = -1;
+            }
         }
         private void Backtrack()
         {
@@ -278,6 +290,11 @@ namespace MAClient.Classes.Entities
             this.subgoals.Push(subGoal);
             //this.ResetBeliefs();
             this.plan = this.CreatePlan();
+            if (this.HasPlan && this.plan.Completed )
+            {
+                SolveSubgoal();
+                this.plan = null;
+            }
         }
         private Plan CreatePlan()
         {

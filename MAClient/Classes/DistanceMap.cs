@@ -34,15 +34,7 @@ namespace MAClient.Classes
             frontier = new Queue<Tuple<int, int>>();
             nextTier = new Queue<Tuple<int, int>>();
 
-            for (int i = 0; i < Node.MAX_COL; i++)
-            {
-                for (int j = 0; j < Node.MAX_ROW; j++)
-                {
-                    distanceMap[i, j] = -1;
-                }
-            }
-
-            depth = 0;
+            depth = 1;
             frontier.Enqueue(startingPos);
             distanceMap[startingPos.Item1, startingPos.Item2] = depth;
 
@@ -60,7 +52,7 @@ namespace MAClient.Classes
                     // if move is possible
                     if (Node.wallList[newPos.Item1, newPos.Item2] == null)
                     {
-                        if (distanceMap[newPos.Item1, newPos.Item2] == -1)
+                        if (distanceMap[newPos.Item1, newPos.Item2] == 0)
                         {
                             // new field reached, mark depth and add field to next depth search.
                             distanceMap[newPos.Item1, newPos.Item2] = depth;

@@ -19,11 +19,13 @@ namespace MAClient.Classes
             this.Boxes = new EntityList<Box>(maxCol, maxRow);
             this.Goals = new EntityList<Goal>(maxCol, maxRow);
             this.MoveToBoxSG = new List<MoveBoxTo>();
+            this.CompletionStateSpace = new HashSet<int[]>();
         }
 
         public EntityList<Agent> Agents { get; private set; }
         public EntityList<Box> Boxes { get; private set; }
         public EntityList<Goal> Goals { get; private set; }
+        private HashSet<int[]> CompletionStateSpace;
 
         public List<MoveBoxTo> MoveToBoxSG { get; private set; }
 
@@ -82,11 +84,31 @@ namespace MAClient.Classes
         {
             if (this.HasAgent(agent.uid))
             {
+                // MoveToBoxSG.Count indexes indicate wether an objective have been sovled. last two indexes indicate agent.uid and assigned objective
+                //int[] objectiveState = new int[MoveToBoxSG.Count + 2];
+                //for (int i = 0; i< MoveToBoxSG.Count; i++)
+                //{
+                //    if (MoveToBoxSG.ElementAt(i).IsGoalState(currentNode))
+                //    {
+                //        objectiveState[i] = 1;
+                //    }
+                //}
+                //objectiveState[MoveToBoxSG.Count] = agent.uid;
                 int boxAgentDist = int.MaxValue;
                 MoveBoxTo candidateSG = null;
+                List<MoveBoxTo>secondTier = new List<MoveBoxTo>();
+
                 foreach (MoveBoxTo subgoal in this.MoveToBoxSG)
                 {
+
+                    //if (CompletionStateSpace.Contains(objectiveState))
+                    //{
+                    //    secondTier.Add(subgoal);
+                    //    continue;
+                    //}
                     if (((Box)subgoal.box).color != agent.color || subgoal.owner != -1 || subgoal.IsGoalState(currentNode)) continue;
+
+                    //objectiveState[MoveToBoxSG.Count + 1] = MoveToBoxSG.IndexOf(subgoal);
                     int dist = Dist(subgoal.box, agent);
                     if (dist < boxAgentDist)
                     {
@@ -96,8 +118,16 @@ namespace MAClient.Classes
                 }
                 if (candidateSG != null)
                 {
+                    //CompletionStateSpace.Add(objectiveState);
                     return new Objective(candidateSG, new MoveAgentTo(candidateSG.box, agent.uid));
                 }
+                //else
+                //{
+                //    foreach (MoveBoxTo subgoal in secondTier)
+                //    {
+
+                //    }
+                //}
             }
             return null;
         }

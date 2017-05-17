@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MAClient
@@ -11,8 +12,8 @@ namespace MAClient
     {
         static void Main(string[] args)
         {
-            // Use stderr to print to console
-            System.Diagnostics.Debug.WriteLine("Hello from Heuristik with a k. I am sending this using the error outputstream");
+            Thread thrd = Thread.CurrentThread;
+            thrd.Priority = ThreadPriority.Highest;
             try
             {
                 SearchClient client = new SearchClient();
