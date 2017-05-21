@@ -15,6 +15,8 @@ namespace MAClient
         {
             Thread thrd = Thread.CurrentThread;
             thrd.Priority = ThreadPriority.Highest;
+            HeuristicFactory.Initialize(args[0]);
+            PartitionFactory.Initialize(args[1]);
             try
             {
                 SearchClient client = new SearchClient();

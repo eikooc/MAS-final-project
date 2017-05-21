@@ -1,1 +1,1 @@
-java -jar Competition\\cserver.jar -d Competition\\Solved\ -c "MAClient\\bin\\Release\\MAClient.exe"
+java -jar Competition\\cserver.jar -d Competition\\Solved\ -c "MAClient\\bin\\Release\\MAClient.exe -astar -withorder"

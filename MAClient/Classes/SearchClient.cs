@@ -45,7 +45,7 @@ namespace MAClient.Classes
             {
                 if (visitedGoals.Contains(goal.uid)) continue;
 
-                MapPartition partition = new MapPartition(Node.MAX_COL, Node.MAX_ROW);
+                MapPartition partition = PartitionFactory.Create(Node.MAX_COL, Node.MAX_ROW);
                 DistanceMap dm = new DistanceMap(goal.col, goal.row, intitialState);
                 while (dm.frontier.Count != 0)
                 {
@@ -80,7 +80,7 @@ namespace MAClient.Classes
                 agent.CurrentBeliefs.agentList.Entities.Where(x => x.uid != agent.uid).ToList().ForEach(a => agent.CurrentBeliefs.agentList.Remove(a.uid));
                 agent.CurrentBeliefs.agentCol = agent.col;
                 agent.CurrentBeliefs.agentRow = agent.row;
-                agent.strategy = new StrategyBestFirst(new AStar(agent.CurrentBeliefs));
+                agent.strategy = new StrategyBestFirst(HeuristicFactory.Create(agent.CurrentBeliefs));
                 AssignGoal(agent, CurrentNode);
             }
         }

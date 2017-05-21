@@ -1,0 +1,1 @@
+java -jar Competition\\cserver.jar -d Benchmarks\ -c "MAClient\\bin\\Release\\MAClient.exe" -g

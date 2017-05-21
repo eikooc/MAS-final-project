@@ -1,1 +1,1 @@
-java -jar server.jar -l Competition\\unsolved\\MAOmnics.lvl -c "MAClient\\bin\\Release\\MAClient.exe" -g
+java -jar server.jar -l Benchmarks\\SAtnrbts.lvl -c "MAClient\\bin\\Release\\MAClient.exe -astar -withorder" -g

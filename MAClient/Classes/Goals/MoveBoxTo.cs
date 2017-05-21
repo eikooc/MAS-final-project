@@ -18,16 +18,6 @@ namespace MAClient.Classes.Goals
             this.position = position;
         }
 
-
-        public void CreateDistanceMap()
-        {
-            this.dm = new DistanceMap(this.position.col, this.position.row, SearchClient.CurrentNode);
-            while (dm.frontier.Count != 0)
-            {
-                dm.Expand();
-            }
-        }
-
         public override bool IsGoalState(Node n)
         {
             Box box = n.boxList[this.box.uid];

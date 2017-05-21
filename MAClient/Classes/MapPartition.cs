@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace MAClient.Classes
 {
-    class MapPartition
+    public abstract class MapPartition
     {
         public MapPartition(int maxCol, int maxRow)
         {
@@ -25,7 +25,7 @@ namespace MAClient.Classes
         public EntityList<Agent> Agents { get; private set; }
         public EntityList<Box> Boxes { get; private set; }
         public EntityList<Goal> Goals { get; private set; }
-        private HashSet<int[]> CompletionStateSpace;
+        protected HashSet<int[]> CompletionStateSpace;
 
         public List<MoveBoxTo> MoveToBoxSG { get; private set; }
 
@@ -50,10 +50,11 @@ namespace MAClient.Classes
             {
                 int goalBoxDist = int.MaxValue;
                 Box candidateBox = null;
+                DistanceMap dm = CreateDistanceMap(goal.col, goal.row);
                 foreach (Box box in this.Boxes.Entities)
                 {
                     if (box.hasGoal() || char.ToLower(box.id) != goal.id) continue;
-                    int dist = Dist(goal, box);
+                    int dist = dm.distanceMap[box.col, box.row] - 2;
                     if (dist < goalBoxDist)
                     {
                         goalBoxDist = dist;
@@ -62,7 +63,7 @@ namespace MAClient.Classes
                 }
                 candidateBox.assignGoal(goal);
                 MoveBoxTo mbt = new MoveBoxTo(candidateBox, new Position(candidateBox.assignedGoal.col, candidateBox.assignedGoal.row), -1);
-                mbt.CreateDistanceMap();
+                mbt.dm = dm;
                 this.MoveToBoxSG.Add(mbt);
             }
         }
@@ -82,40 +83,21 @@ namespace MAClient.Classes
             return this.Goals[id] != null;
         }
 
-        public Objective GetObjective(Agent agent, Node currentNode) // Node for goalstate check
-        {
-            if (this.HasAgent(agent.uid))
-            {
-                int boxAgentDist = int.MaxValue;
-                MoveBoxTo candidateSG = null;
-                MoveBoxTo sg = this.MoveToBoxSG.Where(x=> ((Box)x.box).color == agent.color && x.owner == -1 && !x.IsGoalState(currentNode)).OrderBy(x => x.dependencyOrder).FirstOrDefault();
-                if (sg != null)
-                {
-                    int order = sg.dependencyOrder;
-                    foreach (MoveBoxTo subgoal in this.MoveToBoxSG.Where(x => x.dependencyOrder == order && ((Box)x.box).color == agent.color && x.owner == -1 && !x.IsGoalState(currentNode)))
-                    {                        
-                        int dist = Dist(subgoal.box, agent);
-                        if (dist < boxAgentDist)
-                        {
-                            boxAgentDist = dist;
-                            candidateSG = subgoal;
-                        }
-                    }
-                    if (candidateSG != null)
-                    {
-                        Box box = SearchClient.CurrentNode.boxList[candidateSG.box.uid];
-                        candidateSG.box = box;
-                        candidateSG.dependencyOrder++;
-                        return new Objective(candidateSG, new MoveAgentTo(candidateSG.box, agent.uid));
-                    }
-                }
-            }
-            return null;
-        }
+        public abstract Objective GetObjective(Agent agent, Node currentNode);
 
-        private int Dist(IEntity e1, IEntity e2)
+        protected int Dist(IEntity e1, IEntity e2)
         {
             return Math.Abs(e1.col - e2.col) + Math.Abs(e1.row - e2.row);
+        }
+
+        private DistanceMap CreateDistanceMap(int col, int row)
+        {
+            DistanceMap dm = new DistanceMap(col, row, SearchClient.CurrentNode);
+            while (dm.frontier.Count != 0)
+            {
+                dm.Expand();
+            }
+            return dm;
         }
     }
 }

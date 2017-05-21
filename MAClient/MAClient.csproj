@@ -58,6 +58,9 @@
     <Compile Include="Classes\Goals\MoveBoxTo.cs" />
     <Compile Include="Classes\Greedy.cs" />
     <Compile Include="Classes\Heuristic.cs" />
+    <Compile Include="Classes\PartitionFactory.cs" />
+    <Compile Include="Classes\MapPartitionNoOrder.cs" />
+    <Compile Include="Classes\MapPartitionWithOrder.cs" />
     <Compile Include="Classes\MapPartition.cs" />
     <Compile Include="Classes\Objective.cs" />
     <Compile Include="Classes\Plan.cs" />
@@ -66,6 +69,7 @@
     <Compile Include="Classes\Strategy.cs" />
     <Compile Include="Classes\StrategyBestFirst.cs" />
     <Compile Include="Classes\Goals\SubGoal.cs" />
+    <Compile Include="Classes\HeuristicFactory.cs" />
     <Compile Include="Enumerations\SubGoalType.cs" />
     <Compile Include="Enumerations\Dir.cs" />
     <Compile Include="Enumerations\ActionType.cs" />
