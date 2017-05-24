@@ -1,0 +1,1 @@
+java -jar Competition\\cserver.jar -d SAvsMABenchmark\ -c "MAClient\\bin\\Release\\MAClient.exe -greedy -withorder" 

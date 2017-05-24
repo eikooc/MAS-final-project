@@ -1,0 +1,82 @@
+
+C:\Users\sdmcl\Desktop\MAS-final-project>MABenchmark.bat
+
+C:\Users\sdmcl\Desktop\MAS-final-project>java -jar Competition\\cserver.jar -d MASASoko\ -c "MAClient\\bin\\Release\\MAClient.exe -greedy -withorder"
+Starting competition run!
+Timeout of 300 seconds. Action limit is 20000
+ ************
+ * Processing MASASoko\SAsoko48_1.lvl (1 of 9)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 1.748 seconds
+  - Actions taken: 5982
+
+ ************
+ * Processing MASASoko\SAsoko48_2.lvl (2 of 9)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 2.025 seconds
+  - Actions taken: 3085
+
+ ************
+ * Processing MASASoko\SAsoko48_3.lvl (3 of 9)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 1.991 seconds
+  - Actions taken: 2041
+
+ ************
+ * Processing MASASoko\SAsoko48_4.lvl (4 of 9)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 2.142 seconds
+  - Actions taken: 1573
+
+ ************
+ * Processing MASASoko\SAsoko48_5.lvl (5 of 9)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 2.191 seconds
+  - Actions taken: 1258
+
+ ************
+ * Processing MASASoko\SAsoko48_6.lvl (6 of 9)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 2.198 seconds
+  - Actions taken: 1065
+
+ ************
+ * Processing MASASoko\SAsoko48_7.lvl (7 of 9)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 2.191 seconds
+  - Actions taken: 912
+
+ ************
+ * Processing MASASoko\SAsoko48_8.lvl (8 of 9)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 2.265 seconds
+  - Actions taken: 811
+
+ ************
+ * Processing MASASoko\SAsoko48_9.lvl (9 of 9)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 2.305 seconds
+  - Actions taken: 727
+
+Competition run finished. Please follow provided instructions for uploading results.
+Terminate batch job (Y/N)? y
+
+C:\Users\sdmcl\Desktop\MAS-final-project>

@@ -47,7 +47,8 @@ namespace MAClient.Classes
 		public override abstract string ToString();
 
         public virtual void reset()
-        {}
+        {
+        }
 
     }
 }

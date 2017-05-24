@@ -1,1 +1,1 @@
-java -jar server.jar -l Benchmarks\\SAtnrbts.lvl -c "MAClient\\bin\\Release\\MAClient.exe -astar -withorder" -g
+java -jar server.jar -l Competition\competition_levels\MABeliebers.lvl -c "MAClient\\bin\Debug\\MAClient.exe -greedy -withorder" -g

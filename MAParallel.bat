@@ -1,0 +1,1 @@
+java -jar Competition\\cserver.jar -d MAParallel\ -c "MAClient\\bin\\Release\\MAClient.exe -astar -withorder" 

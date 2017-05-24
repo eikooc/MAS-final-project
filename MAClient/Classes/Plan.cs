@@ -7,7 +7,7 @@ namespace MAClient.Classes
     public class Plan
     {
         public Stack<Node> path;
-
+        
         public Plan(Node n)
         {
             List<Node> estimatedPlan = new List<Node>();
@@ -18,6 +18,7 @@ namespace MAClient.Classes
             }
             estimatedPlan.Reverse();
             this.path = new Stack<Node>(estimatedPlan);
+            
         }
 
         public bool Completed { get { return this.path.Count == 0; } }

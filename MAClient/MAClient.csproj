@@ -86,6 +86,10 @@
       <Project>{E9E1D663-0C69-45C6-A9B7-B71083213F54}</Project>
       <Name>Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\DebugOut\DebugOut.csproj">
+      <Project>{d9124664-54f8-4138-a53e-9f49edad2cb0}</Project>
+      <Name>DebugOut</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

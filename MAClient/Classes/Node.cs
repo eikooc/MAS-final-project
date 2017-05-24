@@ -29,12 +29,14 @@ namespace MAClient.Classes
 
         public Node parent;
         public Command action;
-        private int _g;
+        public int _g;
         private int _hash = 0;
+        public static int TotalNodeCount = 0;
+        public static int MaxNodeCount = 0;
 
         public Node(Node parent, int row, int col) : this(parent)
         {
-
+            TotalNodeCount++;
             MAX_COL = col;
             MAX_ROW = row;
             this.boxList = new EntityList<Box>(MAX_COL, MAX_ROW);
@@ -43,16 +45,10 @@ namespace MAClient.Classes
             this.agentList = new EntityList<Agent>(MAX_COL, MAX_ROW);
         }
 
-        public Node(Node parent, Tuple<int, int> pos) : this(parent)
-        {
-            this.boxList = new EntityList<Box>(MAX_COL, MAX_ROW);
-            this.agentList = new EntityList<Agent>(MAX_COL, MAX_ROW);
-            agentCol = pos.Item1;
-            agentRow = pos.Item2;
-        }
 
         public Node(Node parent)
         {
+            TotalNodeCount++;
             this.parent = parent;
             if (parent == null)
             {

@@ -13,7 +13,7 @@ namespace DebugOut
         {
             if (file == null)
             {
-                file = new StreamWriter("debugout.txt");
+                file = new StreamWriter("debugout.txt", true);
             }
             return file;
         }
