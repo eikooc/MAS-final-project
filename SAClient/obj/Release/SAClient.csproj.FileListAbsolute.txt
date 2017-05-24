@@ -1,0 +1,9 @@
+D:\projekts\AI\MAS-final-project\SAClient\bin\Release\SAClient.exe
+D:\projekts\AI\MAS-final-project\SAClient\bin\Release\DebugOut.exe
+D:\projekts\AI\MAS-final-project\SAClient\bin\Release\Priority Queue.dll
+D:\projekts\AI\MAS-final-project\SAClient\bin\Release\DebugOut.pdb
+D:\projekts\AI\MAS-final-project\SAClient\bin\Release\DebugOut.exe.config
+D:\projekts\AI\MAS-final-project\SAClient\bin\Release\Priority Queue.pdb
+D:\projekts\AI\MAS-final-project\SAClient\bin\Release\Priority Queue.xml
+D:\projekts\AI\MAS-final-project\SAClient\obj\Release\SAClient.csprojResolveAssemblyReference.cache
+D:\projekts\AI\MAS-final-project\SAClient\obj\Release\SAClient.exe

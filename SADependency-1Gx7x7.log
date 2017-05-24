@@ -1,0 +1,31 @@
+red: 0,A
+++++++++++
++       a+
++  +++++++
++  A    0+
++        +
++        +
++        +
++        +
++        +
+++++++++++
+
+[Move(W)];41
+[Move(W)];0
+[Move(W)];0
+[Move(W)];0
+[Push(W,W)];0
+[Push(W,N)];0
+[Push(N,N)];1
+[Push(N,E)];1
+[Push(E,E)];1
+[Push(E,E)];0
+[Push(E,E)];0
+[Push(E,E)];0
+[Push(E,E)];1
+49f63a115a34cce6f118fb585f7a5e64f3201300
+successful
+45
+13
+53068577550353ec9e60d81ed595a4e87fa3088e
+1495452458441

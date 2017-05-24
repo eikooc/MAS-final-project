@@ -1,0 +1,11 @@
+D:\projekts\AI\MAS-final-project\RandomWalkClient\bin\Release\RandomWalkClient.exe.config
+D:\projekts\AI\MAS-final-project\RandomWalkClient\bin\Release\RandomWalkClient.exe
+D:\projekts\AI\MAS-final-project\RandomWalkClient\bin\Release\RandomWalkClient.pdb
+D:\projekts\AI\MAS-final-project\RandomWalkClient\bin\Release\Common.dll
+D:\projekts\AI\MAS-final-project\RandomWalkClient\bin\Release\DebugOut.exe
+D:\projekts\AI\MAS-final-project\RandomWalkClient\bin\Release\Common.pdb
+D:\projekts\AI\MAS-final-project\RandomWalkClient\bin\Release\DebugOut.pdb
+D:\projekts\AI\MAS-final-project\RandomWalkClient\bin\Release\DebugOut.exe.config
+D:\projekts\AI\MAS-final-project\RandomWalkClient\obj\Release\RandomWalkClient.csprojResolveAssemblyReference.cache
+D:\projekts\AI\MAS-final-project\RandomWalkClient\obj\Release\RandomWalkClient.exe
+D:\projekts\AI\MAS-final-project\RandomWalkClient\obj\Release\RandomWalkClient.pdb

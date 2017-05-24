@@ -1,0 +1,43 @@
+Starting competition run!
+Timeout of 300 seconds. Action limit is 20000
+ ************
+ * Processing Benchmarks\SADependency-1Gx7x7.lvl (1 of 5)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 0.04 seconds
+  - Actions taken: 13
+
+ ************
+ * Processing Benchmarks\SADependency-2Gx7x7.lvl (2 of 5)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 0.087 seconds
+  - Actions taken: 58
+
+ ************
+ * Processing Benchmarks\SADependency-3Gx7x7.lvl (3 of 5)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 0.81 seconds
+  - Actions taken: 141
+
+ ************
+ * Processing Benchmarks\SADependency-4Gx7x7.lvl (4 of 5)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 44.9 seconds
+  - Actions taken: 232
+
+ ************
+ * Processing Benchmarks\SADependency-5Gx7x7.lvl (5 of 5)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+Competition run finished. Please follow provided instructions for uploading results.

@@ -1,0 +1,11 @@
+D:\projekts\AI\MAS-final-project\MAClient\bin\Debug\MAClient.exe.config
+D:\projekts\AI\MAS-final-project\MAClient\bin\Debug\MAClient.exe
+D:\projekts\AI\MAS-final-project\MAClient\bin\Debug\MAClient.pdb
+D:\projekts\AI\MAS-final-project\MAClient\bin\Debug\Common.dll
+D:\projekts\AI\MAS-final-project\MAClient\bin\Debug\Priority Queue.dll
+D:\projekts\AI\MAS-final-project\MAClient\bin\Debug\Common.pdb
+D:\projekts\AI\MAS-final-project\MAClient\bin\Debug\Priority Queue.pdb
+D:\projekts\AI\MAS-final-project\MAClient\bin\Debug\Priority Queue.xml
+D:\projekts\AI\MAS-final-project\MAClient\obj\Debug\MAClient.csprojResolveAssemblyReference.cache
+D:\projekts\AI\MAS-final-project\MAClient\obj\Debug\MAClient.exe
+D:\projekts\AI\MAS-final-project\MAClient\obj\Debug\MAClient.pdb

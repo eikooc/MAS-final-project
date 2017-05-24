@@ -1,0 +1,5 @@
+D:\projekts\AI\MAS-final-project\Common\bin\Release\Common.dll
+D:\projekts\AI\MAS-final-project\Common\bin\Release\Common.pdb
+D:\projekts\AI\MAS-final-project\Common\obj\Release\Common.csprojResolveAssemblyReference.cache
+D:\projekts\AI\MAS-final-project\Common\obj\Release\Common.dll
+D:\projekts\AI\MAS-final-project\Common\obj\Release\Common.pdb
