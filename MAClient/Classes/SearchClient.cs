@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 
 namespace MAClient.Classes
 {
@@ -167,6 +168,21 @@ namespace MAClient.Classes
                 y++;
             }
         }
+
+        public string ExtractActions(List<string> agentActions)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("[");
+            foreach (string command in agentActions.Take(agentActions.Count - 1))
+            {
+                sb.Append(command);
+                sb.Append(",");
+            }
+            sb.Append(agentActions.Last());
+            sb.Append("]");
+            return sb.ToString();
+        }
+
         public bool Run()
         {
             try
@@ -186,14 +202,16 @@ namespace MAClient.Classes
 
                     if (count % CurrentNode.agentList.Count == 0 && count != 0)
                     {
-                        List<int> list = agentActions.Keys.ToList();
-                        list.Sort();
-                        var actions = list.Select(x => agentActions[x]);
+                        var actions = Enumerable.Range(0, CurrentNode.agentList.Count).Select(x => agentActions[x]);
                         this.MakeAction(actions.ToList());
                         agentActions = new Dictionary<int, string>();
                     }
-
                 }
+                DebugOut.Debug.GetInstance();
+                DebugOut.Debug.WriteLine("Solution length:{0}", (count / CurrentNode.agentList.Count) + (count % CurrentNode.agentList.Count));
+                DebugOut.Debug.WriteLine("Total number nodes generated:{0}", Node.TotalNodeCount);
+                DebugOut.Debug.WriteLine("Max number nodes:{0}", Node.MaxNodeCount);
+                DebugOut.Debug.WriteLine("-----------------------------------");
             }
             catch (Exception e)
             {
@@ -214,14 +232,7 @@ namespace MAClient.Classes
         }
         private bool MakeAction(List<string> agentActions)
         {
-
-            string jointaction = "[";
-            var agents = CurrentNode.agentList.Entities.OrderBy(x => x.uid);
-            foreach (string command in agentActions.Take(agentActions.Count - 1))
-            {
-                jointaction += command + ",";
-            }
-            jointaction += agentActions.Last() + "]";
+            string jointaction = this.ExtractActions(agentActions);
 
             // place message in buffer
             Console.Out.WriteLine(jointaction);

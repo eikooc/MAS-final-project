@@ -1,6 +1,7 @@
 ﻿using Priority_Queue;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MAClient.Classes
 {
@@ -57,6 +58,8 @@ namespace MAClient.Classes
 
         public override void reset()
         {
+            int planLengths = SearchClient.CurrentNode.agentList.Entities.Sum(x => x.plan ==null ? 0 : x.plan.path.Count);
+            Node.MaxNodeCount = Math.Max(explored.Count + SearchClient.CurrentNode._g + planLengths, Node.MaxNodeCount);
             frontierSet.Clear();
             frontier.Clear();
             explored.Clear();

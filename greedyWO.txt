@@ -1,0 +1,381 @@
+Starting competition run!
+Timeout of 300 seconds. Action limit is 20000
+ ************
+ * Processing Competition\competition_levels\MAAIoliMAsh.lvl (1 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\MABeliebers.lvl (2 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\MABlinky.lvl (3 of 49)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 0.113 seconds
+  - Actions taken: 52
+
+ ************
+ * Processing Competition\competition_levels\MABoxBunny.lvl (4 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\MABronies.lvl (5 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\MADAT.lvl (6 of 49)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 0.138 seconds
+  - Actions taken: 184
+
+ ************
+ * Processing Competition\competition_levels\MADoDo.lvl (7 of 49)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 0.083 seconds
+  - Actions taken: 4
+
+ ************
+ * Processing Competition\competition_levels\MAEvilCorp.lvl (8 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\MAFooBar.lvl (9 of 49)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 0.099 seconds
+  - Actions taken: 49
+
+ ************
+ * Processing Competition\competition_levels\MAGeneralAI.lvl (10 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\MAgroupname.lvl (11 of 49)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 0.935 seconds
+  - Actions taken: 21
+
+ ************
+ * Processing Competition\competition_levels\MAGroupOne.lvl (12 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\MAHALnineK.lvl (13 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\MAHiveMind.lvl (14 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\MAIamGreedy.lvl (15 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\MAJomarki.lvl (16 of 49)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 0.052 seconds
+  - Actions taken: 49
+
+ ************
+ * Processing Competition\competition_levels\MAKalle.lvl (17 of 49)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 0.1 seconds
+  - Actions taken: 84
+
+ ************
+ * Processing Competition\competition_levels\MALemmings.lvl (18 of 49)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 0.054 seconds
+  - Actions taken: 59
+
+ ************
+ * Processing Competition\competition_levels\MALiquorice.lvl (19 of 49)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 0.101 seconds
+  - Actions taken: 128
+
+ ************
+ * Processing Competition\competition_levels\MAMasAiArne.lvl (20 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\MAMASters.lvl (21 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\MANeverMind.lvl (22 of 49)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 0.128 seconds
+  - Actions taken: 54
+
+ ************
+ * Processing Competition\competition_levels\MAOmnics.lvl (23 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\MAtnrbts.lvl (24 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\SAAIoliMAsh.lvl (25 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\SABeliebers.lvl (26 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\SABlinky.lvl (27 of 49)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 1.846 seconds
+  - Actions taken: 171
+
+ ************
+ * Processing Competition\competition_levels\SABoxBunny.lvl (28 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\SABronies.lvl (29 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\SADAT.lvl (30 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\SADoDo.lvl (31 of 49)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 0.059 seconds
+  - Actions taken: 255
+
+ ************
+ * Processing Competition\competition_levels\SAEvilCorp.lvl (32 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\SAFooBar.lvl (33 of 49)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 4.038 seconds
+  - Actions taken: 203
+
+ ************
+ * Processing Competition\competition_levels\SAGeneralAI.lvl (34 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\SAgroupname.lvl (35 of 49)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 0.864 seconds
+  - Actions taken: 3959
+
+ ************
+ * Processing Competition\competition_levels\SAGroupOne.lvl (36 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\SAHALnineK.lvl (37 of 49)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 17.789 seconds
+  - Actions taken: 104
+
+ ************
+ * Processing Competition\competition_levels\SAHiveMind.lvl (38 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\SAIamGreedy.lvl (39 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\SAJomarki.lvl (40 of 49)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 0.058 seconds
+  - Actions taken: 60
+
+ ************
+ * Processing Competition\competition_levels\SAKalle.lvl (41 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\SALemmings.lvl (42 of 49)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 0.081 seconds
+  - Actions taken: 368
+
+ ************
+ * Processing Competition\competition_levels\SALiquorice.lvl (43 of 49)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 0.1 seconds
+  - Actions taken: 95
+
+ ************
+ * Processing Competition\competition_levels\SAMasAiArne.lvl (44 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\SAMASters.lvl (45 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\SANeverMind.lvl (46 of 49)
+ ************
+  - Run of level ended
+  - Solution found
+  - Time spent: 71.07 seconds
+  - Actions taken: 315
+
+ ************
+ * Processing Competition\competition_levels\SAOmnics.lvl (47 of 49)
+ ************
+  - Run of level ended
+  - Solution not found
+  - Time spent: 0.0 seconds
+  - Actions taken: 0
+
+ ************
+ * Processing Competition\competition_levels\SATALK.lvl (48 of 49)
+ ************

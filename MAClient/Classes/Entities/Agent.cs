@@ -16,7 +16,7 @@ namespace MAClient.Classes.Entities
         private Stack<SubGoal> subgoals;
         public Node CurrentBeliefs;
         public Strategy strategy;
-        private Plan plan;
+        public Plan plan;
         private Stack<IEntity> encounteredObjects;
         public SubGoal CurrentSubgoal { get { return this.subgoals.Count > 0 ? this.subgoals.Peek() : null; } }
         public bool HasPlan { get { return this.plan != null; } }
@@ -301,7 +301,7 @@ namespace MAClient.Classes.Entities
         private Plan CreatePlan()
         {
             this.CurrentBeliefs.parent = null;
-            this.strategy.reset();
+            //this.strategy.reset();
             this.strategy.addToFrontier(CurrentBeliefs);
             SubGoal subGoal = subgoals.Peek();
 
@@ -309,12 +309,14 @@ namespace MAClient.Classes.Entities
             {
                 if (this.strategy.frontierIsEmpty())
                 {
+                    this.strategy.reset();
                     return null;
                 }
 
                 Node leafNode = strategy.getAndRemoveLeaf();
                 if (subGoal.IsGoalState(leafNode))
                 {
+                    this.strategy.reset();
                     return leafNode.extractPlan();
                 }
 
